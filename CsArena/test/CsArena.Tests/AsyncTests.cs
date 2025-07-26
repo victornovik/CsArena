@@ -176,7 +176,7 @@ public class AsyncTests
                 throw new ArgumentException("From Task.Run()");
 #pragma warning disable CS0162 // Unreachable code detected
                 return "I've loaded something";
-#pragma warning restore CS0162 // Unreachable code detected
+#pragma warning restore CS0162
             });
         }
     }
@@ -757,6 +757,7 @@ public class AsyncTests
         return "Something";
     }
 
+#pragma warning disable xUnit1031 //Test methods should not use blocking task operations, as they can cause deadlocks. Use an async test method and await instead.
     [Fact]
     public void AsyncPuzzler()
     {
@@ -764,6 +765,7 @@ public class AsyncTests
         Assert.Null(result);
         Assert.Equal("Something", text.Result);
     }
+#pragma warning restore xUnit1031
 
     [Fact]
     public void ReentrantLockTest()

@@ -160,7 +160,9 @@ public class LanguageTests
 
     internal class StaticReadonly
     {
+#pragma warning disable CS8601 //Possible null reference assignment
         private static readonly string b = c;
+#pragma warning restore CS8601
         private static readonly string c = "c";
         private readonly string a = "a";
         public readonly string Res;
@@ -207,8 +209,10 @@ public class LanguageTests
     }
 
     public record Record(int Id, int Age);
+#pragma warning disable CS9113 // Parameter is unread
     public class Class(int Id, int Age);
     public struct Struct(int Id, int Age);
+#pragma warning restore CS9113
 
     [Fact]
     public void GetHashCodeTest()

@@ -174,7 +174,7 @@ public class ReflectionTests
         Assert.Equal(typeof(InvoiceService), service.GetType());
     }
 
-#pragma warning disable CS9113
+#pragma warning disable CS9113 //Parameter is unread
     private interface ILogger;
     private class SqlServerLogger : ILogger;
     private interface IRepository<T>;

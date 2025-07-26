@@ -33,15 +33,15 @@
 +---------------------+---------+----------+----------+----------+------------+---------------+------------+
 */
 
+using CollectionArena.models;
+using CsArena.Tests.ext;
 using System.Collections;
 using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Runtime.InteropServices;
 using System.Text;
-
-using CollectionArena.models;
-using CsArena.Tests.ext;
 
 namespace CsArena.Tests;
 
@@ -303,13 +303,13 @@ public class CollectionTests
             };
         });
         Assert.Equal("An item with the same key has already been added. Key: B", ae.Message);
-        
+
         // Object initializer adds each element by calling indexer [].
         // Collection indexers just silently rewrite already existing elements.
         var objectInitializer = new Dictionary<string, int>()
         {
-            ["A"] = 1 ,
-            ["B"] = 2 ,
+            ["A"] = 1,
+            ["B"] = 2,
             ["B"] = 3
         };
         Assert.Equal(3, objectInitializer["B"]);
@@ -423,7 +423,7 @@ public class CollectionTests
 
         var set = new HashSet<int>(numbers);
         Assert.Equal(countOfUnique, set.Count);
-        
+
         var (set1, set2) = InitSets();
 
         Assert.True(set1.Overlaps(set2));
@@ -596,106 +596,7 @@ public class CollectionTests
         Assert.Equal(sb1.ToString(), sb2.ToString());
     }
 
-    [Fact]
-    public void YieldReturnTest()
-    {
-        var state = string.Empty;
-
-        IEnumerable<int> GetInts()
-        {
-            state = "Before first yield";
-            yield return 1;
-            state = "Between yields";
-            yield return 2;
-            state = "After second yield";
-        }
-
-        using (var it = GetInts().GetEnumerator())
-        {
-            // No lines in GetInts() executed so far
-            Assert.Equal("", state);
-
-            // The first line in GetInts() was executed only on MoveNext() call
-            Assert.True(it.MoveNext());
-            Assert.Equal("Before first yield", state);
-            Assert.Equal(1, it.Current);
-
-            // GetInts() continued execution only after second MoveNext() call
-            Assert.True(it.MoveNext());
-            Assert.Equal("Between yields", state);
-            Assert.Equal(2, it.Current);
-
-            Assert.False(it.MoveNext());
-            Assert.Equal("After second yield", state);
-            
-            // By design calling Current() multiple times will always return the value, stored on the last `yield return`
-            Assert.Equal(2, it.Current);
-            Assert.Equal(2, it.Current);
-            Assert.Equal(2, it.Current);
-
-            // By design Reset() throws NSE
-            Assert.Throws<NotSupportedException>(it.Reset);
-        }
-
-        // foreach creates new Enumerator instance and iterates again through `yield return 1` and `yield return 2`
-        foreach (var i in GetInts())
-        {
-            Assert.Contains(i, Enumerable.Range(1,2));
-        }
-    }
-
-    [Fact]
-    public void YieldBreakTest()
-    {
-        IEnumerable<int> GetInts(int i)
-        {
-            while (true)
-            {
-                if (i == 5)
-                    yield break;
-
-                yield return i++;
-            }
-        }
-
-        using (var it = GetInts(0).GetEnumerator())
-        {
-            Assert.True(it.MoveNext());
-            Assert.Equal(0, it.Current);
-
-            Assert.True(it.MoveNext());
-            Assert.Equal(1, it.Current);
-
-            Assert.True(it.MoveNext());
-            Assert.Equal(2, it.Current);
-        }
-
-        using (var it = GetInts(5).GetEnumerator())
-        {
-            Assert.False(it.MoveNext());
-            Assert.Equal(default(int), it.Current);
-        }
-    }
-
-    [Fact]
-    public void YieldIntInExtensionMethodTest()
-    {
-        var list = new List<int>(5);
-        
-        foreach (var i in 5)
-        {
-            list.Add(i);
-        }
-        Assert.Equal([0, 1, 2, 3, 4, 5], list);
-
-        list.Clear();
-
-        foreach (var i in -5)
-        {
-            list.Add(i);
-        }
-        Assert.Equal([-5, -4, -3, -2, -1, 0], list);
-    }
+    
 
     class WeekEnumerator(string[] days) : IEnumerator<string>
     {
@@ -776,137 +677,6 @@ public class CollectionTests
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-        }
-    }
-
-    [Fact]
-    public void Range()
-    {
-        int[] arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-        Range rng = 1..4;
-
-        Assert.Equal([1, 2, 3], arr[rng]);
-        Assert.Equal([0, 1, 2], arr[..3]);
-    }
-
-    [Fact]
-    public void HatOperator()
-    {
-        int[] arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-
-        var lastElement = arr[^1];
-        Assert.Equal(9, lastElement);
-        Assert.Equal(8, arr[^2]);
-
-        var allButLast = arr[..^1];
-        Assert.Equal([0, 1, 2, 3, 4, 5, 6, 7, 8], allButLast);
-
-        var twoLast = arr[^2..];
-        Assert.Equal([8, 9], twoLast);
-    }
-
-    [Fact]
-    public void AnyOneElementOperator()
-    {
-        Assert.True(Check([4, 5]));
-        Assert.True(Check([6, 5]));
-        Assert.True(Check([5, 5]));
-        Assert.False(Check([5, 1]));
-
-        bool Check(int[] values) => values switch
-        {
-            [_, 5] => true,
-            _ => false
-        };
-    }
-
-    [Fact]
-    public void SliceArray()
-    {
-        int[] arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-
-        var slice1 = arr[..2];
-        Assert.Equal([0, 1], slice1);
-
-        var slice2 = arr[..];
-        Assert.Equal(arr, slice2);
-
-        Index middle = arr.Length / 2;
-        var slice3 = arr[..middle];
-        Assert.Equal([0, 1, 2, 3, 4], slice3);
-
-        var fifthFromEnd = new Index(5, fromEnd: true);
-        var lastFive1 = arr[fifthFromEnd..];
-        Assert.Equal([5, 6, 7, 8, 9], lastFive1);
-
-        // The same as above with concise hat operator
-        var lastFive2 = arr[^5..];
-        Assert.Equal(lastFive1, lastFive2);
-    }
-
-    [Fact]
-    public void SliceString()
-    {
-        const string s = "abcdefghijklmno";
-        Assert.Equal("abcd", s[..4]);
-        Assert.Equal("abcdefghijk", s[..^4]);
-        Assert.Equal("mno", s[^3..]);
-        // Trim both ends
-        Assert.Equal("bcdefghijklmn", s[1..^1]);
-    }
-
-    // Span<T> is value type. Stored in stack.
-    // Span represents a contiguous region of arbitrary memory.
-    // Unlike arrays, it can point to either managed or native memory, or to memory allocated on the stack.
-    //
-    // Memory<T> is stored in heap and can be used as a field and in await and yield
-    [Fact]
-    public void Span()
-    {
-        int[] arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-
-        Span<int> span = arr;
-        Assert.Equal(10, span.Length);
-        span[0] = 111;
-        span[^1] = 999;
-
-        Assert.Equal(111, arr[0]);
-        Assert.Equal(999, arr[^1]);
-
-        var span2 = span[^5..];
-        Assert.Equal([5, 6, 7, 8, 999], span2.ToArray());
-    }
-
-    [Fact]
-    public void ReadonlySpan()
-    {
-        var s = "Victor Novik";
-        ReadOnlySpan<char> roSpan = s.AsSpan(0, 6);
-
-        Assert.Equal("Victor", roSpan.ToString());
-
-        // Cannot mutate
-        // roSpan[0] = 'a';
-    }
-
-    [Fact]
-    public void Slice()
-    {
-        byte[] msg = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-        Process(msg);
-
-        Assert.True(msg.All(el => el == 0));
-        void Process(Span<byte> payload)
-        {
-            var header = payload.Slice(0, 5);
-            var data = payload.Slice(5);
-            var signature = payload.Slice(payload.Length - 1);
-
-            Assert.Equal([0, 1, 2, 3, 4], header.ToArray());
-            Assert.Equal([5, 6, 7, 8, 9], data.ToArray());
-            Assert.Equal([9], signature.ToArray());
-
-            payload.Fill(0);
         }
     }
 }

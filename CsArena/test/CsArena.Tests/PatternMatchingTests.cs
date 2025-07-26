@@ -137,4 +137,19 @@ public class PatternMatchingTests
         Assert.Equal(3, GetIndex([2, 2, 2, 2, 5]));
         Assert.Equal(4, GetIndex([1, 2, 3, 4, 5]));
     }
+
+    [Fact]
+    public void AnyOneElementOperator()
+    {
+        Assert.True(Check([4, 5]));
+        Assert.True(Check([6, 5]));
+        Assert.True(Check([5, 5]));
+        Assert.False(Check([5, 1]));
+
+        bool Check(int[] values) => values switch
+        {
+            [_, 5] => true,
+            _ => false
+        };
+    }
 }
