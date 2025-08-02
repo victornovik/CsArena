@@ -196,7 +196,7 @@ public static class Strings
      */
     public static string LongestDiverseString(int a, int b, int c)
     {
-        StringBuilder[] abc = [new StringBuilder(), new StringBuilder(), new StringBuilder()];
+        StringBuilder[] abc = [new(), new(), new()];
         abc[0].Append('a', a);
         abc[1].Append('b', b);
         abc[2].Append('c', c);

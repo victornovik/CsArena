@@ -19,7 +19,7 @@ public class ReflectionTests
             }
 
             var baseType = type.BaseType;
-            return baseType == null ? false : ContainsMutableFields(baseType);
+            return baseType != null && ContainsMutableFields(baseType);
         }
 
         Assert.True(ContainsMutableFields(typeof(Player)));
@@ -242,7 +242,7 @@ public class ReflectionTests
             return Activator.CreateInstance(dstType, parameters);
         }
 
-        private Dictionary<Type, Type> _typeMapping = new();
+        private readonly Dictionary<Type, Type> _typeMapping = new();
 
         public class ContainerBuilder(Container container, Type srcType)
         {

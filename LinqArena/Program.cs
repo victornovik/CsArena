@@ -1,6 +1,4 @@
-﻿using LinqArena;
-
-// DirectoryContents.IntroLinq();
+﻿// DirectoryContents.IntroLinq();
 
 //FilterOrderProject.Playground();
 

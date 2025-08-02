@@ -9,7 +9,7 @@ public class Player : INameable
     public DateTime? DateOfBirth { get; set; }
     public bool? IsNewbie { get; set; }
 
-    [Obsolete(@"Please use GetFullTypeName()")]
+    [Obsolete("Please use GetFullTypeName()")]
     public string GetTypeName<T>()
     {
         return typeof(T).Name;

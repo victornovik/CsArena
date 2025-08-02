@@ -11,7 +11,7 @@ public static class IntExtensions
             yield return i;
     }
 
-    public static IntAwaiter GetAwaiter(this int number) => new IntAwaiter(number);
+    public static IntAwaiter GetAwaiter(this int number) => new(number);
 
     public class IntAwaiter(int number) : INotifyCompletion
     {

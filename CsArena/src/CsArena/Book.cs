@@ -97,6 +97,6 @@ namespace CsArena
             return new Statistics(grades);
         }
 
-        private List<double> grades = new();
+        private List<double> grades = [];
     }
 }

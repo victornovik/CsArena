@@ -100,9 +100,9 @@ public class SkipListCollection<T> : ICollection<T>
         return true;
     }
 
-    public int Count { get { return _count; } }
+    public int Count => _count;
 
-    public bool IsReadOnly { get { return false; } }
+    public bool IsReadOnly => false;
 
     private IEnumerable<T> Items
     {
