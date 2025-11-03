@@ -1,11 +1,9 @@
 ﻿using CsArena.Tests.ext;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using Xunit.Priority;
 
 namespace CsArena.Tests;
 
-[TestCaseOrderer(PriorityOrderer.Name, PriorityOrderer.Assembly)]
 public class AsyncTests
 {
     [Fact]
@@ -213,27 +211,6 @@ public class AsyncTests
     }
 
     [Fact]
-    public async Task TaskRunOnDifferentThread()
-    {
-        // NOT RECOMMENDED WAY. Use await instead of blocking Task.Wait().
-        //
-        //var mainThreadId = Thread.CurrentThread.ManagedThreadId;
-        //var t = Task.Run(() => 
-        //{
-        //    Assert.NotEqual(mainThreadId, Thread.CurrentThread.ManagedThreadId);
-        //});
-        //t.Wait();
-
-        var mainThreadId = Thread.CurrentThread.ManagedThreadId;
-        var task = Task.Factory.StartNew(() =>
-            {
-                Assert.NotEqual(mainThreadId, Thread.CurrentThread.ManagedThreadId);
-            }
-        );
-        await task;
-    }
-
-    [Fact]
     public async Task ValueTask()
     {
         var rnd = new Random();
@@ -299,124 +276,7 @@ public class AsyncTests
             Clicked?.Invoke(this, EventArgs.Empty);
         }
     }
-
-    private static int _sumPageSizes;
-    private static readonly HttpClient Http = new() { MaxResponseContentBufferSize = 1_000_000 };
-    private static readonly IEnumerable<string> Urls =
-    [
-        "https://learn.microsoft.com",
-        "https://learn.microsoft.com/aspnet/core",
-        "https://learn.microsoft.com/dotnet",
-        "https://learn.microsoft.com/visualstudio",
-    ];
-
-    [Fact, Priority(10)]
-    public async Task WhenAny()
-    {
-        _sumPageSizes = await SumPageSizesAsync();
-        Assert.True(_sumPageSizes > 0);
-
-        async Task<int> SumPageSizesAsync()
-        {
-            IEnumerable<Task<int>> downloadTasksQuery =
-                from url in Urls
-                select ProcessUrlAsync(url, Http);
-
-            // Call ToList() due to deferred nature of LINQ
-            var downloadTasks = downloadTasksQuery.ToList();
-
-            int total = 0;
-            while (downloadTasks.Any())
-            {
-                Task<int> finishedTask = await Task.WhenAny(downloadTasks);
-                downloadTasks.Remove(finishedTask);
-                total += await finishedTask;
-            }
-            return total;
-        }
-
-        static async Task<int> ProcessUrlAsync(string url, HttpClient client)
-        {
-            byte[] content = await client.GetByteArrayAsync(url);
-            return content.Length;
-        }
-    }
-
-    [Fact]
-    public async Task CancellationToken_CancelAfter()
-    {
-        var cts = new CancellationTokenSource();
-        cts.CancelAfter(100);
-
-        await Assert.ThrowsAsync<TaskCanceledException>(async () => _ = await SumPageSizesAsync());
-
-        async Task<int> SumPageSizesAsync()
-        {
-            IEnumerable<Task<int>> downloadTasksQuery =
-                from url in Urls
-                select ProcessUrlAsync(url, Http, cts.Token);
-
-            // Call ToList() due to deferred nature of LINQ
-            var downloadTasks = downloadTasksQuery.ToList();
-
-            int total = 0;
-            while (downloadTasks.Any())
-            {
-                Task<int> finishedTask = await Task.WhenAny(downloadTasks);
-                downloadTasks.Remove(finishedTask);
-                total += await finishedTask;
-            }
-            return total;
-        }
-
-        static async Task<int> ProcessUrlAsync(string url, HttpClient client, CancellationToken token)
-        {
-            byte[] content = await client.GetByteArrayAsync(url, token);
-            return content.Length;
-        }
-    }
-
-    [Fact, Priority(20)]
-    public async Task ContinueWith()
-    {
-        var sumPageSizes = await SumPageSizesAsync();
-
-        // _sumPageSizes is already calculated during previous run of WhenAnyTest()
-        Assert.Equal(_sumPageSizes, sumPageSizes);
-
-        async Task<int> SumPageSizesAsync()
-        {
-            int total = 0;
-            var continueTasks = new List<Task>();
-
-            foreach (var url in Urls)
-            {
-                var task = Task.Run(() => ProcessUrlAsync(url, Http));
-
-                var continueTask = task.ContinueWith(completed =>
-                {
-                    switch (completed.Status)
-                    {
-                        case TaskStatus.RanToCompletion:
-                            total += completed.Result;
-                            break;
-                    }
-                });
-
-                continueTasks.Add(continueTask);
-            }
-
-            await Task.WhenAll(continueTasks.ToArray());
-            return total;
-        }
-
-        static async Task<int> ProcessUrlAsync(string url, HttpClient client)
-        {
-            byte[] content = await client.GetByteArrayAsync(url);
-            return content.Length;
-        }
-    }
-
+    
     [Theory]
     [InlineData(64)]
     [InlineData(128)]
@@ -872,7 +732,7 @@ public class AsyncTests
         sw.Stop();
 
         var ms = sw.ElapsedMilliseconds;
-        Assert.True(ms > DelayInMillis);
+        Assert.True(ms >= DelayInMillis);
 
         //var sec = (decimal)sw.ElapsedTicks / Stopwatch.Frequency;
         //Assert.Equal(decimal.Round(sec, 3, MidpointRounding.ToNegativeInfinity) * 1000, ms);

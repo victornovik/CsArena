@@ -17,8 +17,8 @@ public static class IntExtensions
     {
         public bool IsCompleted => true;
 
-        public void OnCompleted(Action continuation) { }
+        public void OnCompleted(Action continuation) {}
 
-        public int GetResult() => number * number; 
+        public int GetResult() => (int)Math.Pow(number, 2); 
     }
 }
