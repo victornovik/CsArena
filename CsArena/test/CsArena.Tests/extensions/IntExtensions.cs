@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace CsArena.Tests.ext;
+namespace CsArena.Tests.extensions;
 
 public static class IntExtensions
 {

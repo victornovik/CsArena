@@ -1,4 +1,4 @@
-﻿using CsArena.Tests.ext;
+﻿using CsArena.Tests.extensions;
 
 namespace CsArena.Tests;
 

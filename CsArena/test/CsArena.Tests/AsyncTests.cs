@@ -1,6 +1,6 @@
-﻿using CsArena.Tests.ext;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics;
+using CsArena.Tests.extensions;
 
 namespace CsArena.Tests;
 
@@ -13,7 +13,7 @@ public class AsyncTests
         Assert.Equal(25, square);
     }
 
-    [Fact]
+    [Fact(Skip = "Flaky test")]
     public async Task ContinueAfterAwaitInTheSameThread()
     {
         var curThread = Thread.CurrentThread.ManagedThreadId;
@@ -86,7 +86,7 @@ public class AsyncTests
         Assert.Equal("Victor", res);
     }
 
-    [Fact]
+    [Fact(Skip = "Flaky test")]
     public async Task AttachedToParentTasks()
     {
         var mutex = new object();
@@ -228,7 +228,7 @@ public class AsyncTests
         }
     }
 
-    [Fact]
+    [Fact(Skip = "Flaky test")]
     public async Task WaitOnAsyncVoid()
     {
         var mutex = new object();

@@ -4,14 +4,9 @@ namespace CsArena
 {
     public delegate void GradeAddedDelegate(object sender, EventArgs args);
 
-    public class NamedObject
+    public class NamedObject(string name)
     {
-        public NamedObject(string name)
-        {
-            Name = name;
-        }
-
-        public string Name { get; set; } // Auto-property
+        public string Name { get; set; } = name; // Auto-property
     }
 
     public interface IBook
@@ -23,11 +18,8 @@ namespace CsArena
         event GradeAddedDelegate? GradeAdded;
     }
 
-    public abstract class Book : NamedObject, IBook
+    public abstract class Book(string name) : NamedObject(name), IBook
     {
-        protected Book(string name) : base(name)
-        {}
-
         public abstract void AddGrade(double grade);
 
         public void AddGrade(char grade)
@@ -76,11 +68,8 @@ namespace CsArena
         public override event GradeAddedDelegate? GradeAdded;
     }
 
-    public class InMemoryBook : Book
+    public class InMemoryBook(string name) : Book(name)
     {
-        public InMemoryBook(string name) : base(name)
-        {}
-
         public override void AddGrade(double grade)
         {
             if (grade < 0 || grade > 100)
@@ -97,6 +86,6 @@ namespace CsArena
             return new Statistics(grades);
         }
 
-        private List<double> grades = [];
+        private readonly List<double> grades = [];
     }
 }
