@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Security.Cryptography.X509Certificates;
 
 namespace CsArena.Tests;
 
@@ -14,8 +15,8 @@ public static class CSharp14Feature
     // The members in the second extension block are called as though they're static members of any number
     extension<T>(T) where T : INumber<T>
     {
-        public static int Pow2(int i) => i * i;
-        public static int Pow3(int i) => i * i * i;
+        public static T Pow2(T i) => i * i;
+        public static T Pow3(T i) => i * i * i;
     }
 }
 
