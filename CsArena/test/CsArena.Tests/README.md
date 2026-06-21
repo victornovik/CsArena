@@ -4,19 +4,35 @@ Unit-test and exploration project for C# language features, BCL APIs, concurrenc
 
 ---
 
-## Current baseline
+## Running tests
 
-```
-dotnet test test/CsArena.Tests/CsArena.Tests.csproj
+```bash
+# All tests
+dotnet test
+
+# Verbose (show passed test names)
+dotnet test --logger "console;verbosity=normal"
+
+# Single class
+dotnet test --filter "FullyQualifiedName~AsyncTests"
+
+# Single method
+dotnet test --filter "FullyQualifiedName=CsArena.Tests.AsyncTests.WhenEach"
 ```
 
-| Result | Count |
-|---|---|
-| Passed | 337 |
-| Skipped | 3 (HTTP integration tests only — see below) |
-| Failed | 0 |
-| Total | 340 |
-| Time | ~2.5 s |
+---
+
+## Checking for vulnerabilities
+
+```bash
+# All vulnerable packages (CVE) including transitive
+dotnet list package --vulnerable --include-transitive
+
+# Full dependency chain for a specific package
+dotnet nuget why . SQLitePCLRaw.lib.e_sqlite3
+```
+
+---
 
 ---
 
@@ -31,8 +47,6 @@ dotnet test test/CsArena.Tests/CsArena.Tests.csproj
 | Configuration | `Microsoft.Extensions.Configuration.*` 10.0.9 |
 | Target framework | `net10.0` |
 | Language | C# 14 |
-| Nullable | enabled |
-| Unsafe blocks | enabled |
 
 ---
 
@@ -49,7 +63,7 @@ test/CsArena.Tests/
 │   ├── appsettings.json       # Copied to output; base config values
 │   ├── appsettings.local.json # Copied to output; local overrides
 │   ├── Options.cs             # Strongly-typed config binding target
-│   └── TestConfigHelper.cs   # IConfigurationRoot builder; PrintConfig helpers
+│   └── TestConfigHelper.cs    # IConfigurationRoot builder; PrintConfig helpers
 │
 ├── collections/
 │   ├── SkipListCollection.cs
@@ -180,8 +194,6 @@ Only for:
 - HTTP integration tests reaching external URLs: `Skip = "Integration test reaching https://..."`
 - Genuinely non-deterministic scheduler-dependent behaviour after all determinism fixes have been exhausted
 
-The 3 remaining skipped tests are the HTTP integration tests in `HttpTests.cs`. The previously-flaky async tests (`ContinueAfterAwaitInTheSameThread`, `AttachedToParentTasks`, `WaitOnAsyncVoid`) have been fixed — see the Pitfalls table.
-
 ---
 
 ## Async tests
@@ -221,7 +233,6 @@ See `AsyncTests.WhenEach` for the live example.
 | `params ReadOnlySpan<T>` | `CSharp14Tests.ParamsSpanTest` |
 | Extension blocks (`extension`) | `CSharp14Tests.ExtensionBlockTest`, `CSharp14Feature` |
 | Null-conditional assignment (`x?.Prop = v`) | `CSharp14Tests.NullConditionalAssignmentTest` |
-| Collection expressions (`[]`) | Throughout all test files |
 | `Task.WhenEach` (.NET 9) | `AsyncTests.WhenEach` |
 | `Enumerable.Index()` (.NET 9) | `LinqTests.IndexOperator` |
 | `Enumerable.CountBy()` (.NET 9) | `LinqTests.CountByKey` |
@@ -283,18 +294,6 @@ var opts = TestConfigHelper.GetOptions(); // returns Options or new Options()
 ```
 
 User-secrets ID: `acab85f1-6255-410f-a9ef-b94f35eff04b` (matches `csproj`).
-
-### Extension methods (extensions/)
-
-| Method | Signature | Purpose |
-|---|---|---|
-| `MyCount` | `IEnumerable<T> → int` | Custom count (yield iteration demo) |
-| `Filter` | `IEnumerable<T>, Func<T,bool> → IEnumerable<T>` | Custom Where (yield return demo) |
-| `SelectWithIndex` | `IEnumerable<T> → IEnumerable<(T item, int index)>` | Indexed projection |
-| `Random` | `() → IEnumerable<int>` | Infinite random-int stream |
-| `Concat` | `string?, string? → string` | Null-safe concat |
-| `ReplaceAt` | `string, int, char → string` | Char replacement |
-| `ParseEnum<T>` | `string → T where T : Enum` | Generic enum parse |
 
 ### Models (models/)
 
@@ -398,36 +397,6 @@ dotnet user-secrets set "MySection:MyKey" "value" --id acab85f1-6255-410f-a9ef-b
 ## Skill
 
 `/unit-test-writer <topic>` — invokes `.claude/commands/unit-test-writer.md`. Scaffolds a complete, senior-level C# test with all parallelism rules, C# 14 feature preferences, and correct xUnit v3 conventions.
-
----
-
-## Running tests
-
-```bash
-# All tests
-dotnet test test/CsArena.Tests/CsArena.Tests.csproj
-
-# Verbose (show passed test names)
-dotnet test test/CsArena.Tests/CsArena.Tests.csproj --logger "console;verbosity=normal"
-
-# Single class
-dotnet test test/CsArena.Tests/CsArena.Tests.csproj --filter "FullyQualifiedName~AsyncTests"
-
-# Single method
-dotnet test test/CsArena.Tests/CsArena.Tests.csproj --filter "FullyQualifiedName=CsArena.Tests.AsyncTests.WhenEach"
-```
-
----
-
-## Checking for vulnerabilities
-
-```bash
-# All vulnerable packages (CVE) including transitive
-dotnet list package --vulnerable --include-transitive
-
-# Full dependency chain for a specific package
-dotnet nuget why . SQLitePCLRaw.lib.e_sqlite3
-```
 
 ---
 
