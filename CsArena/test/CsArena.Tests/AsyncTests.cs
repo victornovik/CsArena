@@ -1,6 +1,6 @@
-﻿using System.Collections.Concurrent;
+﻿using CsArena.Tests.extensions;
+using System.Collections.Concurrent;
 using System.Diagnostics;
-using CsArena.Tests.extensions;
 
 namespace CsArena.Tests;
 
@@ -406,11 +406,13 @@ public class AsyncTests
         var expectedSum = Enumerable.Range(0, size).Sum();
         var action = () =>
         {
+            // ReSharper disable once AccessToDisposedClosure
             while (unboundedQueue.TryTake(out var res))
                 Interlocked.Add(ref actualSum, res);
         };
 
-        // Launch three parallel actions to consume the BlockingCollection
+        // Launch three parallel actions to consume the BlockingCollection.
+        // Parallel.Invoke is a synchronous, blocking call.
         Parallel.Invoke(action, action, action);
 
         Assert.Equal(expectedSum, actualSum);
@@ -526,6 +528,7 @@ public class AsyncTests
         {
             ThreadPool.QueueUserWorkItem(_ =>
             {
+                // ReSharper disable once AccessToModifiedClosure
                 Interlocked.Increment(ref destination);
             });
         }
@@ -533,9 +536,6 @@ public class AsyncTests
         // Compares `destination` with `comparand`:0 and if they are equal replaces `destination` with `value`:0
         // Returns the original value of `destination`
         while (Interlocked.CompareExchange(ref destination, value: 0, comparand: 0) != 100)
-        { }
-
-        while (Interlocked.Read(ref destination) != 100)
         { }
 
         Assert.Equal(100, destination);
