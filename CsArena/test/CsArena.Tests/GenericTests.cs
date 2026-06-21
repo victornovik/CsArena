@@ -1,5 +1,7 @@
 ﻿using CsArena.Tests.extensions;
 using CsArena.Tests.models;
+// ReSharper disable UnusedTypeParameter
+// ReSharper disable StaticMemberInGenericType
 
 namespace CsArena.Tests;
 

@@ -1,4 +1,5 @@
-﻿using CsArena.Tests.extensions;
+﻿using System.Diagnostics.CodeAnalysis;
+using CsArena.Tests.extensions;
 using CsArena.Tests.models;
 
 namespace CsArena.Tests;
@@ -59,6 +60,7 @@ public class LanguageTests
         var actions = new List<Action>();
         for (var i = 0; i < 10; i++)
         {
+            // ReSharper disable once AccessToModifiedClosure
             actions.Add(() => total += i);
         }
         foreach (var action in actions)
@@ -162,6 +164,7 @@ public class LanguageTests
     internal class StaticReadonly
     {
 #pragma warning disable CS8601 //Possible null reference assignment
+        // ReSharper disable once StaticMemberInitializerReferesToMemberBelow
         private static readonly string b = c;
 #pragma warning restore CS8601
         private static readonly string c = "c";
@@ -216,6 +219,7 @@ public class LanguageTests
 #pragma warning restore CS9113
 
     [Fact]
+    [SuppressMessage("ReSharper", "UsageOfDefaultStructEquality")]
     public void GetHashCodeTest()
     {
         var rec1 = new Record(1, 2);
@@ -232,7 +236,6 @@ public class LanguageTests
 
         // Hash codes of two structs are equal if the first non-static fields are equal
         // Hash code of struct is calculated in ValueType.GetHashCode()
-        // ReSharper disable once UsageOfDefaultStructEquality
         Assert.Equal(s1.GetHashCode(), s2.GetHashCode());
 
         var c1 = new Class(1, 2);

@@ -127,7 +127,7 @@ public class ReflectionTests
     {
         // Mimic NInject container style
         var ioc = new Container();
-        ioc.For<ILogger>().Use<SqlServerLogger>();
+        _ = ioc.For<ILogger>().Use<SqlServerLogger>();
 
         var logger = ioc.Resolve<ILogger>();
 
@@ -139,8 +139,8 @@ public class ReflectionTests
     public void DIContainer_ResolveTypesWithoutDefaultCtor()
     {
         var ioc = new Container();
-        ioc.For<ILogger>().Use<SqlServerLogger>();
-        ioc.For<IRepository<Player>>().Use<SqlRepository<Player>>();
+        _ = ioc.For<ILogger>().Use<SqlServerLogger>();
+        _ = ioc.For<IRepository<Player>>().Use<SqlRepository<Player>>();
 
         var repository = ioc.Resolve<IRepository<Player>>();
 
@@ -152,9 +152,9 @@ public class ReflectionTests
     public void DIContainer_ResolveConcreteType()
     {
         var ioc = new Container();
-        ioc.For<ILogger>().Use<SqlServerLogger>();
-        ioc.For<IRepository<Player>>().Use<SqlRepository<Player>>();
-        ioc.For<IRepository<Customer>>().Use<SqlRepository<Customer>>();
+        _ = ioc.For<ILogger>().Use<SqlServerLogger>();
+        _ = ioc.For<IRepository<Player>>().Use<SqlRepository<Player>>();
+        _ = ioc.For<IRepository<Customer>>().Use<SqlRepository<Customer>>();
 
         var service = ioc.Resolve<InvoiceService>();
 
@@ -166,8 +166,8 @@ public class ReflectionTests
     public void DIContainer_ResolveGenericUnboundType()
     {
         var ioc = new Container();
-        ioc.For<ILogger>().Use<SqlServerLogger>();
-        ioc.For(typeof(IRepository<>)).Use(typeof(SqlRepository<>));
+        _ = ioc.For<ILogger>().Use<SqlServerLogger>();
+        _ = ioc.For(typeof(IRepository<>)).Use(typeof(SqlRepository<>));
 
         var service = ioc.Resolve<InvoiceService>();
 

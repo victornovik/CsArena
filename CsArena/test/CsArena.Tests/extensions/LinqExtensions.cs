@@ -20,8 +20,8 @@ public static class LinqExtensions
                 yield return item;
         }
     }
-
-    public static IEnumerable<(T item, int index)> SelectWithIndex<T>(this IEnumerable<T> src)
+    
+    public static IEnumerable<(T item, int index)> WithIndex<T>(this IEnumerable<T> src)
     {
         var count = 0;
         foreach (var item in src)
@@ -38,8 +38,4 @@ public static class LinqExtensions
             yield return rnd.Next();
         // ReSharper disable once IteratorNeverReturns
     }
-
-    public const string CsvPath = @"dataset\fuel.csv";
-    public const string CsvMfgPath = @"dataset\manufacturers.csv";
-    public const string XmlPath = @"dataset\fuel.xml";
 }
