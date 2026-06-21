@@ -459,23 +459,18 @@ public class AsyncTests
     public void ThreadLocal()
     {
         ThreadLocal<decimal> threadLocal = new(trackAllValues: true);
-        //var options = new ParallelOptions { MaxDegreeOfParallelism = 8};
 
-        Parallel.For(0, 100,
-        i =>
-            {
-                threadLocal.Value += Compute(i);
-            });
+        Parallel.For(0, 100, i =>
+        {
+            threadLocal.Value += Compute(i);
+        });
 
         // Sum of the arithmetic progression of 100 numbers from 0.5 to 99.5
         Assert.Equal(5000m, threadLocal.Values.Sum());
 
-        decimal Compute(int value)
+        static decimal Compute(int value)
         {
-            var ms = new Random().Next(10, 50);
-            var endTime = DateTime.Now + TimeSpan.FromMilliseconds(ms);
-            while (DateTime.Now < endTime)
-            { }
+            Thread.Sleep(Random.Shared.Next(1, 5));
             return value + 0.5m;
         }
     }
@@ -657,6 +652,7 @@ public class AsyncTests
     public void MonitorWaitTest()
     {
         var sync = new object();
+        var workDone = false;
         var thread = new Thread(() =>
         {
             try
@@ -667,6 +663,7 @@ public class AsyncTests
             {
                 lock (sync)
                 {
+                    workDone = true;
                     Monitor.PulseAll(sync);
                 }
             }
@@ -678,9 +675,12 @@ public class AsyncTests
             // Releases the lock on an object and blocks the current thread until it reacquires the lock
             Monitor.Wait(sync);
         }
+
+        Assert.True(workDone);
+        thread.Join();
         return;
 
-        void Work() => Thread.Sleep(1000);
+        void Work() => Thread.Sleep(100);
     }
 
     [Theory]

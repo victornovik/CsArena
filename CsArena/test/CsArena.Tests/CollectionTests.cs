@@ -178,19 +178,7 @@ public class CollectionTests
     {
         var countries = CollectionUtil.CreateSortedCountryList();
 
-        int i = 0;
-
-        // Countries are now sorted by key
-        foreach (var (key, _) in countries)
-        {
-            Assert.True(i++ switch
-            {
-                0 => key == "FIN",
-                1 => key == "NOR",
-                2 => key == "RUS",
-                _ => false
-            });
-        }
+        Assert.Equal(["FIN", "NOR", "RUS"], countries.Keys.ToList());
     }
 
     [Fact]
@@ -426,19 +414,7 @@ public class CollectionTests
     {
         var countries = CollectionUtil.CreateSortedCountryDictionary();
 
-        int i = 0;
-
-        // Countries are now sorted by key
-        foreach (var (key, _) in countries)
-        {
-            Assert.True(i++ switch
-            {
-                0 => key == "FIN",
-                1 => key == "NOR",
-                2 => key == "RUS",
-                _ => false
-            });
-        }
+        Assert.Equal(["FIN", "NOR", "RUS"], countries.Keys.ToList());
     }
 
     [Fact]

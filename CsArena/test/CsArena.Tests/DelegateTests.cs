@@ -10,7 +10,7 @@ public class DelegateTests
     delegate int Printer();
 
     [Fact]
-    public void CaptureVairablePuzzler()
+    public void CaptureVariablePuzzler()
     {
         var printers = new List<Printer>();
         

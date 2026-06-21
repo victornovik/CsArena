@@ -273,4 +273,124 @@ public class LinqTests
         Assert.Equal(250, revenue["Widget"]);
         Assert.Equal(60, revenue["Gadget"]);
     }
+
+    [Fact]
+    public void GroupBy()
+    {
+        var movies = new[]
+        {
+            new Movie { Title = "The Dark Knight",   Rating = 8.9f, Year = 2008 },
+            new Movie { Title = "The King's Speech", Rating = 8.0f, Year = 2010 },
+            new Movie { Title = "Casablanca",        Rating = 8.5f, Year = 1942 },
+            new Movie { Title = "Star Wars V",       Rating = 8.7f, Year = 1980 },
+            new Movie { Title = "Inception",         Rating = 8.8f, Year = 2010 },
+        };
+
+        var byDecade = movies
+            .GroupBy(m => m.Year / 10 * 10)
+            .ToDictionary(g => g.Key, g => g.Select(m => m.Title).OrderBy(t => t).ToList());
+
+        Assert.Equal(4, byDecade.Count);
+        Assert.Equal(["Casablanca"],                           byDecade[1940]);
+        Assert.Equal(["Star Wars V"],                          byDecade[1980]);
+        Assert.Equal(["The Dark Knight"],                      byDecade[2000]);
+        Assert.Equal(["Inception", "The King's Speech"],       byDecade[2010]);
+    }
+
+    [Fact]
+    public void Zip()
+    {
+        int[]    ranks = [1, 2, 3];
+        string[] names = ["Gold", "Silver", "Bronze"];
+
+        var medals = ranks.Zip(names, (rank, name) => $"{rank}:{name}").ToList();
+
+        Assert.Equal(["1:Gold", "2:Silver", "3:Bronze"], medals);
+    }
+
+    [Fact]
+    public void Aggregate()
+    {
+        // Factorial via fold
+        int factorial = Enumerable.Range(1, 5).Aggregate((acc, n) => acc * n);
+        Assert.Equal(120, factorial);
+
+        // Seed-based: join words with spaces
+        string[] words = ["Hello", "World", "C#"];
+        string sentence = words.Aggregate("", (acc, w) => acc.Length == 0 ? w : $"{acc} {w}");
+        Assert.Equal("Hello World C#", sentence);
+
+        // Result selector: collect values then project
+        int sumOfSquares = Enumerable.Range(1, 4)
+            .Aggregate(0, (acc, n) => acc + n * n, result => result);
+        Assert.Equal(30, sumOfSquares); // 1+4+9+16
+    }
+
+    [Fact]
+    public void Chunk()
+    {
+        int[] arr = [1, 2, 3, 4, 5, 6, 7];
+
+        var chunks = arr.Chunk(3).ToList();
+
+        Assert.Equal(3, chunks.Count);
+        Assert.Equal([1, 2, 3], chunks[0]);
+        Assert.Equal([4, 5, 6], chunks[1]);
+        Assert.Equal([7],       chunks[2]);
+    }
+
+    [Fact]
+    public void InnerJoin()
+    {
+        var developers = new[]
+        {
+            new Employee { Id = 1, Name = "Scott" },
+            new Employee { Id = 2, Name = "Chris" },
+            new Employee { Id = 3, Name = "Alice" },
+        };
+        var assignments = new[]
+        {
+            (DevId: 1, Project: "LINQ"),
+            (DevId: 2, Project: "Roslyn"),
+            (DevId: 1, Project: "EF"),
+        };
+
+        // Inner join: Alice (Id=3) is excluded — no matching assignment
+        var joined = developers
+            .Join(assignments, d => d.Id, a => a.DevId, (d, a) => $"{d.Name}:{a.Project}")
+            .OrderBy(s => s)
+            .ToList();
+
+        Assert.Equal(["Chris:Roslyn", "Scott:EF", "Scott:LINQ"], joined);
+    }
+
+    [Fact]
+    public void DistinctBy()
+    {
+        var movies = new[]
+        {
+            new Movie { Title = "Inception",         Rating = 8.8f, Year = 2010 },
+            new Movie { Title = "The King's Speech", Rating = 8.0f, Year = 2010 },
+            new Movie { Title = "Casablanca",        Rating = 8.5f, Year = 1942 },
+        };
+
+        // One representative per year — first occurrence wins
+        var distinctYears = movies.DistinctBy(m => m.Year).Select(m => m.Title).ToList();
+
+        Assert.Equal(["Inception", "Casablanca"], distinctYears);
+    }
+
+    [Fact]
+    public void MinByMaxBy()
+    {
+        var movies = new[]
+        {
+            new Movie { Title = "The Dark Knight",   Rating = 8.9f, Year = 2008 },
+            new Movie { Title = "The King's Speech", Rating = 8.0f, Year = 2010 },
+            new Movie { Title = "Casablanca",        Rating = 8.5f, Year = 1942 },
+        };
+
+        Assert.Equal("The King's Speech", movies.MinBy(m => m.Rating)!.Title);
+        Assert.Equal("The Dark Knight",   movies.MaxBy(m => m.Rating)!.Title);
+    }
 }

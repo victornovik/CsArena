@@ -50,6 +50,7 @@ public class IteratorBlockTests
         {
             Assert.Contains(i, Enumerable.Range(1, 2));
         }
+        Assert.Equal("After second yield", state);
     }
 
     [Fact]
