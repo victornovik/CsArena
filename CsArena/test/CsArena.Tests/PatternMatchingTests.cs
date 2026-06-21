@@ -1,4 +1,4 @@
-﻿using LinqArena;
+﻿using CsArena.Tests.models;
 
 namespace CsArena.Tests;
 

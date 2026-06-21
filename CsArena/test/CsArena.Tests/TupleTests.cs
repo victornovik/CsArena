@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
-using LinqArena;
+using CsArena.Tests.models;
 
 namespace CsArena.Tests;
 

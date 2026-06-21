@@ -1,4 +1,4 @@
-using LinqArena.Common;
+using CsArena.Tests.extensions;
 
 namespace CsArena.Tests;
 
