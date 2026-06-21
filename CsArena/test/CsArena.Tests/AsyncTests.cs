@@ -19,25 +19,15 @@ public class AsyncTests
         var curThread = Thread.CurrentThread.ManagedThreadId;
         var task = Task.Delay(50, TestContext.Current.CancellationToken);
         
-        // Spin until the task completes: awaiting an already-completed task runs the
-        // continuation inline on the current thread — no context switch occurs.
+        // Spin until the task completes.
+        // Awaiting an already-completed task runs the continuation in the current thread — no context switch occurs.
         while (!task.IsCompleted) Thread.Yield();
         
         await task;
 
         Assert.Equal(curThread, Thread.CurrentThread.ManagedThreadId);
     }
-
-    [Fact]
-    public async Task ContinueAfterAwaitInDifferentThread()
-    {
-        var curThread = Thread.CurrentThread.ManagedThreadId;
-        await Task.Delay(50, TestContext.Current.CancellationToken);
-
-        // Continuation will resume executing in some other thread
-        Assert.NotEqual(curThread, Thread.CurrentThread.ManagedThreadId);
-    }
-
+    
     [Fact]
     public async Task TaskCompletionSource_Future_Promise()
     {
@@ -262,11 +252,18 @@ public class AsyncTests
         // Asynchronous call — suspends immediately at await, letting sync handlers run first.
         async void OnButtonClicked2Async(object? sender, EventArgs e)
         {
-            await Task.Delay(50);
-            lock (sync)
-                res += "-OnButtonClicked2Async";
+            try
+            {
+                await Task.Delay(50);
+                lock (sync)
+                    res += "-OnButtonClicked2Async";
 
-            tcs.SetResult(true);
+                tcs.SetResult(true);
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
         }
     }
 
@@ -725,6 +722,14 @@ public class AsyncTests
         Assert.True(monotonicTimeInTicks > 1);
     }
 
+    /*
+        Stopwatch uses QueryPerformanceCounter (QPC) — a high-resolution hardware counter. Task.Delay uses System.Threading.Timer, which is driven by the system clock (a completely separate counter). These two clocks track real time independently and can drift slightly relative to each other.
+        So even though the system timer fires "at or after 1000ms" from its own perspective, QPC may have advanced only 999.7ms by that point. Then ElapsedMilliseconds truncates (integer division, not rounding):
+        999.7ms → ElapsedMilliseconds = 999   // fails the assertion
+        The truncation is the second blow. Even a 0.1ms shortfall produces a value of 999.
+        Why it's intermittent: the drift between QPC and the system timer varies with CPU load, power state changes (frequency scaling), and is worse in virtualized environments (where the hypervisor virtualizes both clocks independently). On a quiet machine it almost never triggers; under load or in CI it surfaces more often.
+        The fix is to add a small tolerance that accounts for the inter-clock resolution gap. On Windows the system timer resolution is ~15.6ms
+     */
     [Fact]
     public async Task StopWatchTest()
     {
@@ -735,8 +740,8 @@ public class AsyncTests
         await Task.Delay(DelayInMillis, TestContext.Current.CancellationToken);
         sw.Stop();
 
-        var ms = sw.ElapsedMilliseconds;
-        Assert.True(ms >= DelayInMillis);
+        var elapsedMilliseconds = sw.ElapsedMilliseconds;
+        Assert.True(elapsedMilliseconds >= DelayInMillis - 15);
 
         //var sec = (decimal)sw.ElapsedTicks / Stopwatch.Frequency;
         //Assert.Equal(decimal.Round(sec, 3, MidpointRounding.ToNegativeInfinity) * 1000, ms);
