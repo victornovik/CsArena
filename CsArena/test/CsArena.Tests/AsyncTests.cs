@@ -608,9 +608,9 @@ public class AsyncTests
         }
     }
 
-    private static string? result;
+    private string? result;
 
-    static async Task<string> SaySomething()
+    async Task<string> SaySomething()
     {
         await Task.Delay(500);
         result = "Hello world";
@@ -686,6 +686,8 @@ public class AsyncTests
     [InlineData(10, 10)]
     public void InterProcessMutex(int threadCount, int iterationCount)
     {
+        // Unique name per invocation so parallel theory cases don't share the same OS mutex.
+        var mutexName = $"CsArena_InterProcessMutex_{Guid.NewGuid():N}";
         var sum = 0;
         var threads = new Thread[threadCount];
 
@@ -693,7 +695,7 @@ public class AsyncTests
         {
             threads[i] = new Thread(() =>
             {
-                var mx = new Mutex(initiallyOwned: false, "UniqueMutexName");
+                using var mx = new Mutex(initiallyOwned: false, mutexName);
                 for (var j = 0; j < iterationCount; j++)
                 {
                     mx.WaitOne();
