@@ -390,6 +390,33 @@ public class CollectionTests
     }
 
     [Fact]
+    public void OrderedDictionary()
+    {
+        // OrderedDictionary<K,V> (.NET 9+): preserves insertion order AND supports O(1) index-based access —
+        // unlike Dictionary (unordered) and SortedDictionary (sorted by key, not insertion).
+        var dict = new System.Collections.Generic.OrderedDictionary<string, int>
+        {
+            ["banana"] = 2,
+            ["apple"]  = 5,
+            ["cherry"] = 1,
+        };
+
+        // Insertion order is preserved on enumeration
+        Assert.Equal(["banana", "apple", "cherry"], dict.Keys.ToArray());
+
+        // O(1) positional access
+        var (key, val) = dict.GetAt(0);
+        Assert.Equal("banana", key);
+        Assert.Equal(2, val);
+
+        // Insert at a specific position
+        dict.Insert(0, "aardvark", 0);
+        Assert.Equal("aardvark", dict.Keys.First());
+        Assert.Equal(4, dict.Count);
+        Assert.Equal(["aardvark", "banana", "apple", "cherry"], dict.Keys.ToArray());
+    }
+
+    [Fact]
     public void SortedDictionary()
     {
         var countries = CollectionUtil.CreateSortedCountryDictionary();

@@ -227,4 +227,49 @@ public class LinqTests
         // More than one elements exist
         Assert.Throws<InvalidOperationException>(() => arr.Single((i) => i == 6));
     }
+
+    [Fact]
+    public void IndexOperator()
+    {
+        // Index() (.NET 9+): projects each element paired with its 0-based position.
+        string[] words = ["alpha", "beta", "gamma", "delta"];
+
+        var indexed = words.Index().ToList();
+
+        Assert.Equal((0, "alpha"), indexed[0]);
+        Assert.Equal((1, "beta"),  indexed[1]);
+        Assert.Equal((3, "delta"), indexed[3]);
+    }
+
+    [Fact]
+    public void CountByKey()
+    {
+        // CountBy (.NET 9+): groups by key selector and returns per-key counts.
+        string[] words = ["apple", "banana", "apricot", "blueberry", "avocado", "blackberry"];
+
+        var counts = words.CountBy(w => w[0]).ToDictionary(p => p.Key, p => p.Value);
+
+        Assert.Equal(3, counts['a']);
+        Assert.Equal(3, counts['b']);
+    }
+
+    [Fact]
+    public void AggregateByKey()
+    {
+        // AggregateBy (.NET 9+): groups by key and folds each group with a seed + accumulator.
+        var orders = new[]
+        {
+            (Product: "Widget", Revenue: 100),
+            (Product: "Gadget", Revenue: 200),
+            (Product: "Widget", Revenue: 150),
+            (Product: "Gadget", Revenue:  50),
+        };
+
+        var revenue = orders
+            .AggregateBy(o => o.Product, seed: 0, (total, o) => total + o.Revenue)
+            .ToDictionary(p => p.Key, p => p.Value);
+
+        Assert.Equal(250, revenue["Widget"]);
+        Assert.Equal(250, revenue["Gadget"]);
+    }
 }

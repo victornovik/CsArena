@@ -20,8 +20,45 @@ public static class CSharp14Feature
     }
 }
 
+// field keyword (C# 14): references the compiler-generated backing field inside a property
+// accessor, enabling semi-auto properties without an explicit backing field declaration.
+file class Temperature
+{
+    public double Celsius
+    {
+        get;
+        set => field = value >= -273.15
+            ? value
+            : throw new ArgumentOutOfRangeException(nameof(Celsius), "Below absolute zero");
+    }
+}
+
 public class CSharp14Tests
 {
+    [Fact]
+    public void FieldKeywordTest()
+    {
+        var t = new Temperature { Celsius = 100.0 };
+        Assert.Equal(100.0, t.Celsius);
+        Assert.Throws<ArgumentOutOfRangeException>(() => t.Celsius = -300.0);
+    }
+
+    // params ReadOnlySpan<T> (C# 13): stack-allocates the argument list — zero heap pressure.
+    private static int SumInts(params ReadOnlySpan<int> numbers)
+    {
+        var total = 0;
+        foreach (var n in numbers) total += n;
+        return total;
+    }
+
+    [Fact]
+    public void ParamsSpanTest()
+    {
+        Assert.Equal(15, SumInts(1, 2, 3, 4, 5));
+        Assert.Equal(0,  SumInts());
+        Assert.Equal(42, SumInts(42));
+    }
+
     [Fact]
     public void NullConditionalAssignmentTest()
     {

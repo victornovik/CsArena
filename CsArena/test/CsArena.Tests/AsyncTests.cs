@@ -13,17 +13,15 @@ public class AsyncTests
         Assert.Equal(25, square);
     }
 
-    [Fact(Skip = "Flaky test")]
+    [Fact]
     public async Task ContinueAfterAwaitInTheSameThread()
     {
         var curThread = Thread.CurrentThread.ManagedThreadId;
-
         var task = Task.Delay(50);
-        Thread.Sleep(100);
-
-        // When we reach `await` the task is already completed so we keep executing in the same thread synchronously
+        // Spin until the task completes: awaiting an already-completed task runs the
+        // continuation inline on the current thread — no context switch occurs.
+        while (!task.IsCompleted) Thread.Yield();
         await task;
-
         Assert.Equal(curThread, Thread.CurrentThread.ManagedThreadId);
     }
 
@@ -69,6 +67,27 @@ public class AsyncTests
     }
 
     [Fact]
+    public async Task WhenEach()
+    {
+        // Task.WhenEach (.NET 9+): yields tasks in completion order, not declaration order.
+        var t1 = Delayed(300, "slow");
+        var t2 = Delayed(100, "fast");
+        var t3 = Delayed(200, "medium");
+
+        var order = new List<string>();
+        await foreach (var task in Task.WhenEach(t1, t2, t3))
+            order.Add(await task);
+
+        Assert.Equal(["fast", "medium", "slow"], order);
+
+        static async Task<string> Delayed(int ms, string value)
+        {
+            await Task.Delay(ms);
+            return value;
+        }
+    }
+
+    [Fact]
     public async Task FactoryStartNew()
     {
         var task = Task.Factory.StartNew(async () =>
@@ -86,43 +105,45 @@ public class AsyncTests
         Assert.Equal("Victor", res);
     }
 
-    [Fact(Skip = "Flaky test")]
+    [Fact]
     public async Task AttachedToParentTasks()
     {
-        var mutex = new object();
+        var sync = new Lock();
         string res = "";
+        Task? task1 = null, task2 = null;
 
         // Outer task will not complete until inner attached tasks complete, i.e. Task3 in this case
         await Task.Factory.StartNew(() =>
         {
-            Task.Factory.StartNew(() =>
+            task1 = Task.Factory.StartNew(() =>
             {
                 Thread.Sleep(200);
-                lock (mutex)
+                lock (sync)
                     // ReSharper disable once AccessToModifiedClosure
                     res += "-Task1Done";
             });
 
-            Task.Factory.StartNew(() =>
+            task2 = Task.Factory.StartNew(() =>
             {
                 Thread.Sleep(300);
-                lock (mutex)
+                lock (sync)
                     res += "-Task2Done";
             }, TaskCreationOptions.LongRunning);
 
             Task.Factory.StartNew(() =>
             {
                 Thread.Sleep(100);
-                lock (mutex)
+                lock (sync)
                     // ReSharper disable once AccessToModifiedClosure
                     res += "Task3Done";
             }, TaskCreationOptions.AttachedToParent);
         });
 
-        lock (mutex)
+        lock (sync)
             res += "-OuterTaskDone";
 
-        await Task.Delay(500);
+        // WhenAll instead of a fixed delay: deterministic regardless of system load.
+        await Task.WhenAll(task1!, task2!);
 
         Assert.Equal("Task3Done-OuterTaskDone-Task1Done-Task2Done", res);
     }
@@ -228,10 +249,10 @@ public class AsyncTests
         }
     }
 
-    [Fact(Skip = "Flaky test")]
+    [Fact]
     public async Task WaitOnAsyncVoid()
     {
-        var mutex = new object();
+        var sync = new Lock();
         string res = string.Empty;
 
         var tcs = new TaskCompletionSource<bool>();
@@ -249,19 +270,18 @@ public class AsyncTests
 
         Assert.Equal("-OnButtonClicked1-OnButtonClicked1-OnButtonClicked2Async", res);
 
-        // Synchronous call
+        // Synchronous call — runs during Click(), before the async continuation resumes.
         void OnButtonClicked1(object? sender, EventArgs e)
         {
-            Task.Delay(10).Wait();
-            lock (mutex)
+            lock (sync)
                 res += "-OnButtonClicked1";
         }
 
-        // Asynchronous call
+        // Asynchronous call — suspends immediately at await, letting sync handlers run first.
         async void OnButtonClicked2Async(object? sender, EventArgs e)
         {
             await Task.Delay(50);
-            lock (mutex)
+            lock (sync)
                 res += "-OnButtonClicked2Async";
 
             tcs.SetResult(true);
