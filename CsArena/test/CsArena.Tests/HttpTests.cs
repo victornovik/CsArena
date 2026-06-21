@@ -16,7 +16,6 @@ public class HttpTests
         }
     }
     
-    private static int TotalPageSizes;
     private static readonly HttpClient HttpClientt = new() { MaxResponseContentBufferSize = 1_000_000 };
     private static readonly IEnumerable<string> Urls =
     [
@@ -29,8 +28,8 @@ public class HttpTests
     [Fact (Skip = "Integration test reaching https://learn.microsoft.com"), Trait("type", "http")]
     public async Task HttpClient_WhenAny()
     {
-        TotalPageSizes = await SumPageSizesAsync();
-        Assert.True(TotalPageSizes > 0);
+        var totalPageSizes = await SumPageSizesAsync();
+        Assert.True(totalPageSizes > 0);
 
         async Task<int> SumPageSizesAsync()
         {
