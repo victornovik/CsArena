@@ -1,0 +1,10 @@
+<Project>
+	<PropertyGroup>
+		<!--<AnalysisLevel>latest</AnalysisLevel>
+		<AnalysisMode>All</AnalysisMode>-->
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<NoWarn>NETSDK1233</NoWarn>
+	</PropertyGroup>
+</Project>
