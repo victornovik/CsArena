@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
 using System.Text;
+using CsArena.Tests.models;
 using Microsoft.CSharp.RuntimeBinder;
 
 namespace CsArena.Tests;
@@ -127,7 +128,7 @@ public class TypeTests
     [Fact]
     public void RefTypeByOut()
     {
-        void ByOut(out InMemoryBook res, string newName) => res = new(newName);
+        void ByOut(out Book res, string newName) => res = new(newName);
 
         ByOut(out var b, "Alice In Wonderland");
 
@@ -137,9 +138,9 @@ public class TypeTests
     [Fact]
     public void RefTypeByRef()
     {
-        void ByRef(ref InMemoryBook book, string newName) => book = new(newName);
+        void ByRef(ref Book book, string newName) => book = new(newName);
 
-        var b = new InMemoryBook("before");
+        var b = new Book("before");
         ByRef(ref b, "after");
 
         Assert.Equal("after", b.Name);
@@ -148,9 +149,9 @@ public class TypeTests
     [Fact]
     public void RefTypeByVal()
     {
-        void ByVal(InMemoryBook book, string newName) => book.Name = newName;
+        void ByVal(Book book, string newName) => book.Name = newName;
 
-        var b = new InMemoryBook("before");
+        var b = new Book("before");
         ByVal(b, "after");
 
         Assert.Equal("after", b.Name);
@@ -222,8 +223,8 @@ public class TypeTests
     [Fact]
     public void DifferentObjects()
     {
-        var b1 = new InMemoryBook("b1");
-        var b2 = new InMemoryBook("b2");
+        var b1 = new Book("b1");
+        var b2 = new Book("b2");
 
         Assert.False(ReferenceEquals(b1, b2));
     }
@@ -231,8 +232,8 @@ public class TypeTests
     [Fact]
     public void EquivalentObjects()
     {
-        var b1 = new InMemoryBook("b1");
-        var b2 = new InMemoryBook("b1");
+        var b1 = new Book("b1");
+        var b2 = new Book("b1");
 
         Assert.Equivalent(b1, b2, strict: true);
     }
@@ -240,7 +241,7 @@ public class TypeTests
     [Fact]
     public void TwoVarsReferenceTheSameObject()
     {
-        var b1 = new InMemoryBook("b1");
+        var b1 = new Book("b1");
         var b2 = b1;
 
         Assert.True(ReferenceEquals(b1, b2));

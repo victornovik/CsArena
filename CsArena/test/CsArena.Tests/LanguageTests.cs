@@ -1,4 +1,5 @@
 ﻿using CsArena.Tests.ext;
+using CsArena.Tests.models;
 
 namespace CsArena.Tests;
 
@@ -105,9 +106,9 @@ public class LanguageTests
         Assert.Null(OperatorAs(1));
     }
 
-    class Cloneable(InMemoryBook book) : ICloneable
+    class Cloneable(Book book) : ICloneable
     {
-        public InMemoryBook book = book;
+        public Book book = book;
 
         // MemberwiseClone() is always shallow copy
         public object Clone() => MemberwiseClone();
@@ -118,7 +119,7 @@ public class LanguageTests
         {
             // MemberwiseClone() is always shallow copy
             var other = (Cloneable)MemberwiseClone();
-            other.book = new InMemoryBook(new string(book.Name));
+            other.book = new Book(new string(book.Name));
             return other;
         }
     }
@@ -127,7 +128,7 @@ public class LanguageTests
     public void ShallowCloneTest()
     {
         // 1. ICloneable.Clone() implements shallow copy in our case
-        var src = new Cloneable(new InMemoryBook("C#"));
+        var src = new Cloneable(new Book("C#"));
         var dst1 = src.Clone() as Cloneable;
         Assert.True(ReferenceEquals(src.book, dst1!.book));
         Assert.True(ReferenceEquals(src.book.Name, dst1.book.Name));
@@ -147,13 +148,13 @@ public class LanguageTests
     public void DeepCloneTest()
     {
         // 2. Explicitly implement deep copy
-        var src = new Cloneable(new InMemoryBook("C#"));
+        var src = new Cloneable(new Book("C#"));
         var dst2 = src.DeepCopy();
         Assert.False(ReferenceEquals(src.book, dst2.book));
         Assert.False(ReferenceEquals(src.book.Name, dst2.book.Name));
 
         // 3. Deep copy with Reflection
-        var dst3 = (Cloneable)Activator.CreateInstance(typeof(Cloneable), new InMemoryBook(new string(src.book.Name)))!;
+        var dst3 = (Cloneable)Activator.CreateInstance(typeof(Cloneable), new Book(new string(src.book.Name)))!;
         Assert.False(ReferenceEquals(src.book, dst3.book));
         Assert.False(ReferenceEquals(src.book.Name, dst3.book.Name));
     }

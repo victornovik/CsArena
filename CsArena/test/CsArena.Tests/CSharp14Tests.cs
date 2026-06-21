@@ -1,5 +1,5 @@
 ﻿using System.Numerics;
-using System.Security.Cryptography.X509Certificates;
+using CsArena.Tests.models;
 
 namespace CsArena.Tests;
 
@@ -32,7 +32,7 @@ public class CSharp14Tests
         }
 
         // If book is null, the code doesn't call the assignment and RHS is not evaluated
-        InMemoryBook? book = null;
+        Book? book = null;
         book?.Name = Rhs();
         Assert.Null(book);
     }
