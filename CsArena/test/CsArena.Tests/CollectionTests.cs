@@ -293,10 +293,11 @@ public class CollectionTests
         // Add() throws AE when the same key is being added.
         var ae = Assert.Throws<ArgumentException>(() =>
         {
-            var collectionInitializer = new Dictionary<string, int>()
+            _ = new Dictionary<string, int>()
             {
                 { "A", 1 },
                 { "B", 2 },
+                // ReSharper disable once DuplicateKeyCollectionInitialization
                 { "B", 3 }
             };
         });
@@ -308,6 +309,7 @@ public class CollectionTests
         {
             ["A"] = 1,
             ["B"] = 2,
+            // ReSharper disable once DuplicateKeyCollectionInitialization
             ["B"] = 3
         };
         Assert.Equal(3, objectInitializer["B"]);
@@ -316,15 +318,18 @@ public class CollectionTests
     [Fact]
     public void DictionaryCapacity()
     {
+        // ReSharper disable once CollectionNeverUpdated.Local
         Dictionary<string, string> countries = new();
 
-        var nextPrime = HashHelpers.GetPrime(4);
+        int shouldFitElementsCount = 4;
+        var nextPrime = HashHelpers.GetPrime(shouldFitElementsCount);
         Assert.Equal(7, nextPrime);
-        Assert.Equal(nextPrime, countries.EnsureCapacity(4));
+        Assert.Equal(nextPrime, countries.EnsureCapacity(shouldFitElementsCount));
 
-        nextPrime = HashHelpers.GetPrime(40);
+        shouldFitElementsCount = 40;
+        nextPrime = HashHelpers.GetPrime(shouldFitElementsCount);
         Assert.Equal(47, nextPrime);
-        Assert.Equal(nextPrime, countries.EnsureCapacity(40));
+        Assert.Equal(nextPrime, countries.EnsureCapacity(shouldFitElementsCount));
     }
 
     [Fact]
@@ -394,7 +399,7 @@ public class CollectionTests
     {
         // OrderedDictionary<K,V> (.NET 9+): preserves insertion order AND supports O(1) index-based access —
         // unlike Dictionary (unordered) and SortedDictionary (sorted by key, not insertion).
-        var dict = new System.Collections.Generic.OrderedDictionary<string, int>
+        var dict = new OrderedDictionary<string, int>
         {
             ["banana"] = 2,
             ["apple"]  = 5,
@@ -532,7 +537,7 @@ public class CollectionTests
     public void ImmutableStack()
     {
         var rw = new Stack<int>([2, 3, 1]);
-        var ro = System.Collections.Immutable.ImmutableStack.Create([2, 3, 1]);
+        var ro = System.Collections.Immutable.ImmutableStack.Create(2, 3, 1);
 
         Assert.Equal(rw.Count, ro.Count());
         Assert.Equal(rw.Max(), ro.Max());

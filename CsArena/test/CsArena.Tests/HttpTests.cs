@@ -10,7 +10,7 @@ public class HttpTests
         for (var i = 0; i < 10 /*100_000*/; ++i)
         {
             using var client = new HttpClient();
-            var res = await client.GetAsync("https://google.com");
+            var res = await client.GetAsync("https://google.com", TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
         }

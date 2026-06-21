@@ -81,7 +81,7 @@ public class IteratorBlockTests
         using (var it = GetInts(5).GetEnumerator())
         {
             Assert.False(it.MoveNext());
-            Assert.Equal(default, it.Current);
+            Assert.Equal(0, it.Current);
         }
     }
 

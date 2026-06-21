@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Linq.Expressions;
 
 namespace CsArena.Tests;
 
@@ -15,6 +16,7 @@ public class DelegateTests
         
         for (var i = 0; i < 10; i++)
         {
+            // ReSharper disable once AccessToModifiedClosure
             printers.Add(() => i);
         }
 
@@ -84,6 +86,7 @@ public class DelegateTests
     }
 
     [Fact]
+    [SuppressMessage("ReSharper", "ConvertToLocalFunction")]
     public void Lambdas()
     {
         Func<int, int> square = x => x * x;
@@ -102,6 +105,7 @@ public class DelegateTests
     }
 
     [Fact]
+    [SuppressMessage("ReSharper", "ConvertToLocalFunction")]
     public void AddRemoveLambda()
     {
         var res = string.Empty;

@@ -125,6 +125,7 @@ public class NullTests
         //LogNonNullable(nullPlayer);
 
         bool LogNullable<T>(T t) where T : class? => t is null;
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         bool LogNonNullable<T>(T t) where T : class => t is not null;
     }
 
@@ -148,6 +149,7 @@ public class NullTests
 
         // typeof cannot be used on nullable reference types as `?` annotation in a declaration indicates that the variable might be null.
         // It doesn't indicate a different runtime type.
+        // ReSharper disable once VariableCanBeNotNullable
         string? s1 = "a";
         string s2 = "b";
         Assert.Equal(s1.GetType(), s2.GetType());

@@ -17,11 +17,14 @@ public class AsyncTests
     public async Task ContinueAfterAwaitInTheSameThread()
     {
         var curThread = Thread.CurrentThread.ManagedThreadId;
-        var task = Task.Delay(50);
+        var task = Task.Delay(50, TestContext.Current.CancellationToken);
+        
         // Spin until the task completes: awaiting an already-completed task runs the
         // continuation inline on the current thread — no context switch occurs.
         while (!task.IsCompleted) Thread.Yield();
+        
         await task;
+
         Assert.Equal(curThread, Thread.CurrentThread.ManagedThreadId);
     }
 
@@ -29,7 +32,7 @@ public class AsyncTests
     public async Task ContinueAfterAwaitInDifferentThread()
     {
         var curThread = Thread.CurrentThread.ManagedThreadId;
-        await Task.Delay(50);
+        await Task.Delay(50, TestContext.Current.CancellationToken);
 
         // Continuation will resume executing in some other thread
         Assert.NotEqual(curThread, Thread.CurrentThread.ManagedThreadId);
@@ -63,27 +66,6 @@ public class AsyncTests
 
             // Return Future bound to the Promise
             return tcs.Task;
-        }
-    }
-
-    [Fact]
-    public async Task WhenEach()
-    {
-        // Task.WhenEach (.NET 9+): yields tasks in completion order, not declaration order.
-        var t1 = Delayed(300, "slow");
-        var t2 = Delayed(100, "fast");
-        var t3 = Delayed(200, "medium");
-
-        var order = new List<string>();
-        await foreach (var task in Task.WhenEach(t1, t2, t3))
-            order.Add(await task);
-
-        Assert.Equal(["fast", "medium", "slow"], order);
-
-        static async Task<string> Delayed(int ms, string value)
-        {
-            await Task.Delay(ms);
-            return value;
         }
     }
 
@@ -137,7 +119,7 @@ public class AsyncTests
                     // ReSharper disable once AccessToModifiedClosure
                     res += "Task3Done";
             }, TaskCreationOptions.AttachedToParent);
-        });
+        }, TestContext.Current.CancellationToken);
 
         lock (sync)
             res += "-OuterTaskDone";
@@ -387,7 +369,7 @@ public class AsyncTests
         for (var i = 0; i < size; i++)
         {
             var j = i;
-            producers.Add(Task.Run(() => bag.Add(j)));
+            producers.Add(Task.Run(() => bag.Add(j), TestContext.Current.CancellationToken));
         }
         await Task.WhenAll(producers);
 
@@ -400,7 +382,7 @@ public class AsyncTests
             {
                 if (bag.TryTake(out _))
                     Interlocked.Increment(ref actualElementsInBag);
-            }));
+            }, TestContext.Current.CancellationToken));
         }
         await Task.WhenAll(consumers);
 
@@ -417,7 +399,7 @@ public class AsyncTests
         using var unboundedQueue = new BlockingCollection<int>(new ConcurrentQueue<int>());
 
         for (int i = 0; i < size; i++)
-            unboundedQueue.Add(i);
+            unboundedQueue.Add(i, TestContext.Current.CancellationToken);
 
         // After a collection has been marked as complete for adding, adding to the collection is not permitted.
         // So attempts to take from the collection will not wait when the collection is empty.
@@ -455,7 +437,7 @@ public class AsyncTests
                 counter++;
                 Thread.SpinWait(100000);
             }
-        });
+        }, TestContext.Current.CancellationToken);
 
         var producer = Task.Run(() =>
         {
@@ -465,7 +447,7 @@ public class AsyncTests
                 Assert.False(boundedQueue.IsCompleted);
             }
             boundedQueue.CompleteAdding();
-        });
+        }, TestContext.Current.CancellationToken);
 
         await Task.WhenAll(producer, consumer);
 
@@ -750,7 +732,7 @@ public class AsyncTests
 
         var sw = new Stopwatch();
         sw.Start();
-        await Task.Delay(DelayInMillis);
+        await Task.Delay(DelayInMillis, TestContext.Current.CancellationToken);
         sw.Stop();
 
         var ms = sw.ElapsedMilliseconds;

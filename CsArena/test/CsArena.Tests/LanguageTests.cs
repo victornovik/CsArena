@@ -232,6 +232,7 @@ public class LanguageTests
 
         // Hash codes of two structs are equal if the first non-static fields are equal
         // Hash code of struct is calculated in ValueType.GetHashCode()
+        // ReSharper disable once UsageOfDefaultStructEquality
         Assert.Equal(s1.GetHashCode(), s2.GetHashCode());
 
         var c1 = new Class(1, 2);

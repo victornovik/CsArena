@@ -107,6 +107,7 @@ public class GcTests
         var disp2 = new Disposable();
         Assert.False(disp2.isDisposed);
         // disp2 is copied and boxed. Dispose() is called on another reference-type instance.
+        // ReSharper disable once RedundantCast
         ((IDisposable)disp2).Dispose();
         Assert.False(disp2.isDisposed);
 

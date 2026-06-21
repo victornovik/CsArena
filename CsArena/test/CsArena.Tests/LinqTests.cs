@@ -245,12 +245,13 @@ public class LinqTests
     public void CountByKey()
     {
         // CountBy (.NET 9+): groups by key selector and returns per-key counts.
-        string[] words = ["apple", "banana", "apricot", "blueberry", "avocado", "blackberry"];
+        string[] words = ["apple", "banana", "apricot", "avocado", "blackberry"];
 
+        // Groups by the first letter and counts how many words start with each letter
         var counts = words.CountBy(w => w[0]).ToDictionary(p => p.Key, p => p.Value);
 
         Assert.Equal(3, counts['a']);
-        Assert.Equal(3, counts['b']);
+        Assert.Equal(2, counts['b']);
     }
 
     [Fact]
@@ -260,7 +261,7 @@ public class LinqTests
         var orders = new[]
         {
             (Product: "Widget", Revenue: 100),
-            (Product: "Gadget", Revenue: 200),
+            (Product: "Gadget", Revenue: 10),
             (Product: "Widget", Revenue: 150),
             (Product: "Gadget", Revenue:  50),
         };
@@ -270,6 +271,6 @@ public class LinqTests
             .ToDictionary(p => p.Key, p => p.Value);
 
         Assert.Equal(250, revenue["Widget"]);
-        Assert.Equal(250, revenue["Gadget"]);
+        Assert.Equal(60, revenue["Gadget"]);
     }
 }

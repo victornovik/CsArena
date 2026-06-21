@@ -53,6 +53,7 @@ public class TypeTests
     [Fact]
     public void ValueTypeByRef()
     {
+        // ReSharper disable once RedundantAssignment
         void ByRef(ref int inner) => inner = 45;
 
         var outer = 4;
@@ -138,6 +139,7 @@ public class TypeTests
     [Fact]
     public void RefTypeByRef()
     {
+        // ReSharper disable once RedundantAssignment
         void ByRef(ref Book book, string newName) => book = new(newName);
 
         var b = new Book("before");
