@@ -1,7 +1,5 @@
 ﻿using CsArena.Tests.config;
 using Microsoft.Extensions.Configuration;
-using Xunit.Abstractions;
-
 namespace CsArena.Tests;
 
 public class ConfigurationTests(ITestOutputHelper output)
