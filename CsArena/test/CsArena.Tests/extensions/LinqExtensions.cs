@@ -1,6 +1,6 @@
 ﻿namespace CsArena.Tests.extensions;
 
-public static class LinqExt
+public static class LinqExtensions
 {
     public static int MyCount<T>(this IEnumerable<T> src)
     {

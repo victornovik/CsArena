@@ -1,4 +1,4 @@
-﻿using CollectionArena.models;
+﻿using CsArena.Tests.models;
 
 namespace CsArena.Tests;
 

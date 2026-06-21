@@ -1,8 +1,6 @@
-﻿using CollectionArena.models;
+﻿namespace CsArena.Tests.models;
 
-namespace CsArena.Tests.models;
-
-public class Player : INameable
+public class Player
 {
     public string? Name { get; set; }
     public int? DaysSinceLastLogin { get; set; }

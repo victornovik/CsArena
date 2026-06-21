@@ -144,7 +144,7 @@ public class LinqTests
     [Fact]
     public void InfiniteOperator()
     {
-        var even = LinqExt.Random().Where(n => n % 2 == 0).Take(10);
+        var even = LinqExtensions.Random().Where(n => n % 2 == 0).Take(10);
         foreach (var n in even)
             Assert.Equal(0, n % 2);
     }

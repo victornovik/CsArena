@@ -33,13 +33,13 @@
 +---------------------+---------+----------+----------+----------+------------+---------------+------------+
 */
 
-using CollectionArena.models;
 using System.Collections;
 using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Text;
+using CsArena.Tests.models;
 
 namespace CsArena.Tests;
 

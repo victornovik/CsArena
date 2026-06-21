@@ -48,9 +48,6 @@
     <Using Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\CollectionArena\CollectionArena.csproj" />
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="collections\" />
   </ItemGroup>
 </Project>

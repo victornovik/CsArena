@@ -1,4 +1,4 @@
-﻿namespace CsArena.Tests.ext;
+﻿namespace CsArena.Tests.extensions;
 
 public static class StringExtensions
 {
@@ -12,5 +12,10 @@ public static class StringExtensions
         var chars = s.ToCharArray();
         chars[index] = ch;
         return new string(chars);
+    }
+
+    public static T ParseEnum<T>(this string str) where T : Enum
+    {
+        return (T)Enum.Parse(typeof(T), str);
     }
 }
