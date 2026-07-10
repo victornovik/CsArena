@@ -15,7 +15,7 @@ public class LanguageTests
         var @new = 5;
         Assert.Equal(5, @new);
 
-        // @ charcter is stripped
+        // @ character is stripped
         Assert.Equal("new", nameof(@new));
     }
 
@@ -50,6 +50,28 @@ public class LanguageTests
         t.Touch();
 
         Assert.Equal(10, TestStatic.TestValue);
+    }
+
+    // There are two fields in the class.
+    // 1. `explicitField` where primary ctor parameter `i` is assigned.
+    // 2. Hidden `<i>P` field created by compiler because we refer to ctor parameter `i` in function getImplicitField()
+    // If we did not refer `i` in function getImplicitField() the compiler would not create it.
+    private class PrimaryCtor(int i)
+    {
+#pragma warning disable CS9124 // Parameter is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
+        public int explicitField = i;
+#pragma warning restore CS9124 // Parameter is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.
+        public int getImplicitField() => i;
+    }
+
+    [Fact]
+    public void PrimaryConstructorHiddenFieldTest()
+    {
+        var p = new PrimaryCtor(1);
+        p.explicitField = 2;
+
+        Assert.Equal(2, p.explicitField);
+        Assert.Equal(1, p.getImplicitField());
     }
 
     [Fact]
