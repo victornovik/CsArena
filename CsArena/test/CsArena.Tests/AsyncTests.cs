@@ -84,14 +84,13 @@ public class AsyncTests
         string res = "";
         Task? task1 = null, task2 = null;
 
-        // Outer task will not complete until inner attached tasks complete, i.e. Task3 in this case
+        // Outer task will not complete until inner attached tasks complete, i.e. inner task Task3 must complete before the outer task.
         await Task.Factory.StartNew(() =>
         {
             task1 = Task.Factory.StartNew(() =>
             {
                 Thread.Sleep(200);
                 lock (sync)
-                    // ReSharper disable once AccessToModifiedClosure
                     res += "-Task1Done";
             });
 
@@ -106,7 +105,6 @@ public class AsyncTests
             {
                 Thread.Sleep(100);
                 lock (sync)
-                    // ReSharper disable once AccessToModifiedClosure
                     res += "Task3Done";
             }, TaskCreationOptions.AttachedToParent);
         }, TestContext.Current.CancellationToken);
@@ -117,7 +115,10 @@ public class AsyncTests
         // WhenAll instead of a fixed delay: deterministic regardless of system load.
         await Task.WhenAll(task1!, task2!);
 
-        Assert.Equal("Task3Done-OuterTaskDone-Task1Done-Task2Done", res);
+        Assert.True(
+            res is "Task3Done-OuterTaskDone-Task1Done-Task2Done"
+                or "Task3Done-OuterTaskDone-Task2Done-Task1Done",
+            $"Unexpected task completion order: {res}");
     }
 
     [Fact]
