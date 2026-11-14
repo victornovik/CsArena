@@ -9,7 +9,7 @@
 //var mySportMessage = ToMySportAuditMessage(beforeChange, afterChange);
 //var gosTechMessage = ToGosTechAuditMessage(beforeChange, afterChange);
 
-var result = new AuditHub().AuditAction([
+var success = await new AuditHub().AuditAction([
     new MySportAuditMessage
     {
         PersonId = 1,
@@ -22,7 +22,7 @@ var result = new AuditHub().AuditAction([
     new GosTechAuditMessage { UserId = "user-1", Message = "Updated" }
 ]);
 
-Console.WriteLine($"Has errors while writing audit: {result}");
+Console.WriteLine($"Has errors while writing audit: {!success}");
 
 public interface IAuditable
 {
@@ -64,17 +64,9 @@ public class AuditHub
 {
     public async Task<bool> AuditAction(IEnumerable<IAuditable> messages)
     {
-        var success = true;
+        var results = await Task.WhenAll(messages.Select(msg => msg.DoAudit()));
 
-        List<Task> tasks = [];
-        foreach (var msg in messages)
-        {
-            tasks.Add(msg.DoAudit());
-        }
-
-        await Task.WhenAll(tasks);
-
-        return success;
+        return results.All(ok => ok);
     }
 }
 
