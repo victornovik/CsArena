@@ -9,7 +9,18 @@
 //var mySportMessage = ToMySportAuditMessage(beforeChange, afterChange);
 //var gosTechMessage = ToGosTechAuditMessage(beforeChange, afterChange);
 
-var result = new AuditHub().AuditAction([new MySportAuditMessage(), new GosTechAuditMessage()]);
+var result = new AuditHub().AuditAction([
+    new MySportAuditMessage
+    {
+        PersonId = 1,
+        Action = "Update",
+        IsSuccess = true,
+        IpAddress = IPAddress.Loopback,
+        BeforeChangeState = "{}",
+        AfterChangeState = "{}"
+    },
+    new GosTechAuditMessage { UserId = "user-1", Message = "Updated" }
+]);
 
 Console.WriteLine($"Has errors while writing audit: {result}");
 
@@ -21,11 +32,11 @@ public interface IAuditable
 public class MySportAuditMessage : IAuditable
 {
     public int PersonId { get; init; }
-    public string Action { get; init; }
+    public required string Action { get; init; }
     public bool IsSuccess { get; init; }
-    public IPAddress IpAddress { get; init; }
-    public string BeforeChangeState { get; init; }
-    public string AfterChangeState { get; init; }
+    public required IPAddress IpAddress { get; init; }
+    public required string BeforeChangeState { get; init; }
+    public required string AfterChangeState { get; init; }
 
     public async Task<bool> DoAudit()
     {
@@ -38,8 +49,8 @@ public class MySportAuditMessage : IAuditable
 
 public class GosTechAuditMessage : IAuditable
 {
-    public string UserId { get; init; }
-    public string Message { get; init; }
+    public required string UserId { get; init; }
+    public required string Message { get; init; }
 
     public async Task<bool> DoAudit()
     {
