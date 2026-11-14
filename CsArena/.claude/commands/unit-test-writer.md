@@ -17,7 +17,7 @@ Given `$ARGUMENTS` — a topic, feature, algorithm, or scenario — write:
 |---|---|
 | Framework | xUnit v3 (`xunit.v3` 3.2.2) |
 | Parallel | `Meziantou.Xunit.v3.ParallelTestFramework` — every test runs in parallel |
-| Runtime | `net10.0`, C# 14, nullable enabled |
+| Runtime | `net11.0`, C# 15, nullable enabled |
 | Global using | `using Xunit;` is implicit — **never add it explicitly** |
 | Test namespaces | `CsArena.Tests` (root) · `CsArena.Tests.LeetCode` (algorithms) |
 

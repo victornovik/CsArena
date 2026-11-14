@@ -45,7 +45,7 @@ dotnet nuget why . SQLitePCLRaw.lib.e_sqlite3
 | VS / Rider runner | `xunit.runner.visualstudio` 3.1.5 |
 | Coverage | `coverlet.collector` 10.0.1 |
 | Configuration | `Microsoft.Extensions.Configuration.*` 10.0.9 |
-| Target framework | `net10.0` |
+| Target framework | `net11.0` |
 | Language | C# 14 |
 
 ---
