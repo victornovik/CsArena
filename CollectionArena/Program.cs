@@ -38,12 +38,12 @@ public class MySportAuditMessage : IAuditable
     public required string BeforeChangeState { get; init; }
     public required string AfterChangeState { get; init; }
 
-    public async Task<bool> DoAudit()
+    public Task<bool> DoAudit()
     {
         // convert to json
         // write to rabbit mq
         // return true/false if success
-        return true;
+        return Task.FromResult(true);
     }
 }
 
@@ -52,11 +52,11 @@ public class GosTechAuditMessage : IAuditable
     public required string UserId { get; init; }
     public required string Message { get; init; }
 
-    public async Task<bool> DoAudit()
+    public Task<bool> DoAudit()
     {
         // write to Kafka
         // return true/false if success
-        return true;
+        return Task.FromResult(true);
     }
 }
 
