@@ -57,7 +57,7 @@ public static class TestConfigHelper
     public static void PrintConfigProviders(ITestOutputHelper output)
     {
         output.WriteLine("CONFIGURATION PROVIDERS:");
-        foreach (var provider in GetConfigurationRoot(enableSecrets: true, enableEnvVar: true, enableCmdLine: true).Providers.ToList())
+        foreach (var provider in GetConfigurationRoot(enableSecrets: true, enableEnvVar: true, enableCmdLine: true).Providers.ToArray())
         {
             output.WriteLine($"{provider}");
         }

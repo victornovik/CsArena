@@ -57,7 +57,7 @@ public class TupleTests
             .GetType()
             .GetFields()
             .Select(f => f.Name)
-            .ToList();
+            .ToArray();
         Assert.Equal(["Item1", "Item2"], fieldNames);
     }
 

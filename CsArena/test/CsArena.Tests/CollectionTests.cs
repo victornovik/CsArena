@@ -178,7 +178,7 @@ public class CollectionTests
     {
         var countries = CollectionUtil.CreateSortedCountryList();
 
-        Assert.Equal(["FIN", "NOR", "RUS"], countries.Keys.ToList());
+        Assert.Equal(["FIN", "NOR", "RUS"], countries.Keys.ToArray());
     }
 
     [Fact]
@@ -414,7 +414,7 @@ public class CollectionTests
     {
         var countries = CollectionUtil.CreateSortedCountryDictionary();
 
-        Assert.Equal(["FIN", "NOR", "RUS"], countries.Keys.ToList());
+        Assert.Equal(["FIN", "NOR", "RUS"], countries.Keys.ToArray());
     }
 
     [Fact]
@@ -424,8 +424,8 @@ public class CollectionTests
 
         var countOfUnique = numbers.Max() - numbers.Min() + 1;
 
-        var list = numbers.Distinct().ToList();
-        Assert.Equal(countOfUnique, list.Count);
+        var list = numbers.Distinct().ToArray();
+        Assert.Equal(countOfUnique, list.Length);
 
         var set = new HashSet<int>(numbers);
         Assert.Equal(countOfUnique, set.Count);

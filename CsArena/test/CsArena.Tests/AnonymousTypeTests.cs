@@ -27,7 +27,7 @@ public class AnonymousTypeTests
             .GetType()
             .GetProperties()
             .Select(f => f.Name)
-            .ToList();
+            .ToArray();
         Assert.Equal(["Manufacturer", "Name"], fieldNames);
     }
 
@@ -51,7 +51,7 @@ public class AnonymousTypeTests
             .GetType()
             .GetProperties()
             .Select(f => f.Name)
-            .ToList();
+            .ToArray();
 
         Assert.Equal(["Manufacturer", "Name"], fieldNames);
 
@@ -59,7 +59,7 @@ public class AnonymousTypeTests
             .GetType()
             .GetProperties()
             .Select(f => f.GetValue(anonTypeInstance))
-            .ToList();
+            .ToArray();
 
         Assert.Equal(["Honda", "Accord"], fieldValues);
     }

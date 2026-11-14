@@ -66,14 +66,14 @@ public class LinqTests
         var methodSyntax =
             developers.Where(e => e.Name!.Length == 5)
                 .OrderBy(e => e.Name)
-                .ToList();
-        Assert.Equal(2, methodSyntax.Count);
+                .ToArray();
+        Assert.Equal(2, methodSyntax.Length);
 
         var querySyntax =
             (from e in developers
              where e.Name!.Length == 5
              orderby e.Name
-             select e).ToList();
+             select e).ToArray();
         Assert.Equal(methodSyntax, querySyntax);
     }
 
@@ -114,7 +114,7 @@ public class LinqTests
                           where m.Year > 2000
                           select m;
 
-        var referenceValue = methodSyntax.ToList();
+        var referenceValue = methodSyntax.ToArray();
         Assert.Equal(referenceValue, customMethodSyntax);
         Assert.Equal(referenceValue, querySyntax);
     }
@@ -164,16 +164,16 @@ public class LinqTests
         IEnumerable<string> query1 = petOwners
             .SelectMany(owner => owner.Pets!)
             .Where(pet => pet.StartsWith("S"));
-        Assert.Equal(["Scruffy", "Sam", "Sugar", "Scratches"], query1.ToList());
+        Assert.Equal(["Scruffy", "Sam", "Sugar", "Scratches"], query1.ToArray());
 
         var query3 = petOwners
             .SelectMany(owner => owner.Pets!, (owner, pet) => (Owner: owner.Name, Pet: pet))
             .Where(p => p.Pet.StartsWith("Scr"));
-        Assert.Equal([("Riga", "Scruffy"), ("Price", "Scratches")], query3.ToList());
+        Assert.Equal([("Riga", "Scruffy"), ("Price", "Scratches")], query3.ToArray());
 
         // Single Select returns 4 lists in IEnumerable
         IEnumerable<List<string>> query2 = petOwners.Select(petOwner => petOwner.Pets)!;
-        Assert.Equal(4, query2.ToList().Count);
+        Assert.Equal(4, query2.ToArray().Length);
     }
 
     class PetOwner
@@ -234,7 +234,7 @@ public class LinqTests
         // Index() (.NET 9+): projects each element paired with its 0-based position.
         string[] words = ["alpha", "beta", "gamma", "delta"];
 
-        var indexed = words.Index().ToList();
+        var indexed = words.Index().ToArray();
 
         Assert.Equal((0, "alpha"), indexed[0]);
         Assert.Equal((1, "beta"),  indexed[1]);
@@ -258,13 +258,13 @@ public class LinqTests
     public void AggregateByKey()
     {
         // AggregateBy (.NET 9+): groups by key and folds each group with a seed + accumulator.
-        var orders = new[]
-        {
+        (string Product, int Revenue)[] orders =
+        [
             (Product: "Widget", Revenue: 100),
             (Product: "Gadget", Revenue: 10),
             (Product: "Widget", Revenue: 150),
             (Product: "Gadget", Revenue:  50),
-        };
+        ];
 
         var revenue = orders
             .AggregateBy(o => o.Product, seed: 0, (total, o) => total + o.Revenue)
@@ -288,7 +288,7 @@ public class LinqTests
 
         var byDecade = movies
             .GroupBy(m => m.Year / 10 * 10)
-            .ToDictionary(g => g.Key, g => g.Select(m => m.Title).OrderBy(t => t).ToList());
+            .ToDictionary(g => g.Key, g => g.Select(m => m.Title).OrderBy(t => t).ToArray());
 
         Assert.Equal(4, byDecade.Count);
         Assert.Equal(["Casablanca"],                           byDecade[1940]);
@@ -303,7 +303,7 @@ public class LinqTests
         int[]    ranks = [1, 2, 3];
         string[] names = ["Gold", "Silver", "Bronze"];
 
-        var medals = ranks.Zip(names, (rank, name) => $"{rank}:{name}").ToList();
+        var medals = ranks.Zip(names, (rank, name) => $"{rank}:{name}").ToArray();
 
         Assert.Equal(["1:Gold", "2:Silver", "3:Bronze"], medals);
     }
@@ -331,9 +331,9 @@ public class LinqTests
     {
         int[] arr = [1, 2, 3, 4, 5, 6, 7];
 
-        var chunks = arr.Chunk(3).ToList();
+        var chunks = arr.Chunk(3).ToArray();
 
-        Assert.Equal(3, chunks.Count);
+        Assert.Equal(3, chunks.Length);
         Assert.Equal([1, 2, 3], chunks[0]);
         Assert.Equal([4, 5, 6], chunks[1]);
         Assert.Equal([7],       chunks[2]);
@@ -348,18 +348,18 @@ public class LinqTests
             new Employee { Id = 2, Name = "Chris" },
             new Employee { Id = 3, Name = "Alice" },
         ];
-        var assignments = new[]
-        {
+        (int DevId, string Project)[] assignments =
+        [
             (DevId: 1, Project: "LINQ"),
             (DevId: 2, Project: "Roslyn"),
             (DevId: 1, Project: "EF"),
-        };
+        ];
 
         // Inner join: Alice (Id=3) is excluded — no matching assignment
         var joined = developers
             .Join(assignments, d => d.Id, a => a.DevId, (d, a) => $"{d.Name}:{a.Project}")
             .OrderBy(s => s)
-            .ToList();
+            .ToArray();
 
         Assert.Equal(["Chris:Roslyn", "Scott:EF", "Scott:LINQ"], joined);
     }
@@ -375,7 +375,7 @@ public class LinqTests
         ];
 
         // One representative per year — first occurrence wins
-        var distinctYears = movies.DistinctBy(m => m.Year).Select(m => m.Title).ToList();
+        var distinctYears = movies.DistinctBy(m => m.Year).Select(m => m.Title).ToArray();
 
         Assert.Equal(["Inception", "Casablanca"], distinctYears);
     }

@@ -449,7 +449,7 @@ public static class Sort
     public static void SortWiggle_BySort2(int[] nums)
     {
         var count = nums.Length / 2;
-        foreach (var item in nums.OrderByDescending(n => n).Select((number, index) => (number, index)).ToList())
+        foreach (var item in nums.OrderByDescending(n => n).Select((number, index) => (number, index)).ToArray())
         {
             var newIndex = item.index >= count ? (item.index - count) * 2 : item.index * 2 + 1;
             nums[newIndex] = item.number;
