@@ -13,7 +13,7 @@ public static class Backtracking
      */
     public static IList<string> GenerateParentheses(int n)
     {
-        var res = new List<string>();
+        List<string> res = [];
         Generate("", 0, 0);
         return res;
 

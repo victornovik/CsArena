@@ -102,7 +102,7 @@ public class HttpTests
     //    async Task<int> SumPageSizesAsync()
     //    {
     //        int total = 0;
-    //        var continueTasks = new List<Task>();
+    //        List<Task> continueTasks = [];
 
     //        foreach (var url in Urls)
     //        {

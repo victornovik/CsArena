@@ -44,7 +44,7 @@ public class AsyncTests
 
             ThreadPool.QueueUserWorkItem(_ =>
             {
-                var prices = new List<int>();
+                List<int> prices = [];
                 for (var i = 0; i < 10; ++i)
                 {
                     prices.Add(i);
@@ -363,7 +363,7 @@ public class AsyncTests
     {
         var bag = new ConcurrentBag<int>();
 
-        var producers = new List<Task>();
+        List<Task> producers = [];
         for (var i = 0; i < size; i++)
         {
             var j = i;
@@ -373,7 +373,7 @@ public class AsyncTests
 
         int actualElementsInBag = 0;
 
-        var consumers = new List<Task>();
+        List<Task> consumers = [];
         while (!bag.IsEmpty)
         {
             consumers.Add(Task.Run(() =>

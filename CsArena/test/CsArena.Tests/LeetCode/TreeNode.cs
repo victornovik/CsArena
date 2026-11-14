@@ -47,7 +47,7 @@ public class TreeNode
         var queue = new Queue<TreeNode?>();
         queue.Enqueue(this);
 
-        var res = new List<int?>();
+        List<int?> res = [];
         for (var treeLevelSize = queue.Count; treeLevelSize > 0; treeLevelSize = queue.Count)
         {
             for (var i = 0; i < treeLevelSize; i++)

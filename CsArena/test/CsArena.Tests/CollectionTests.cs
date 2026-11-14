@@ -100,7 +100,7 @@ public class CollectionTests
     [Fact]
     public void List()
     {
-        var days = new List<string>();
+        List<string> days = [];
         Assert.Empty(days);
         Assert.Equal(0, days.Capacity);
 
@@ -115,7 +115,7 @@ public class CollectionTests
     [Fact]
     public void ListCapacity()
     {
-        var days = new List<string>();
+        List<string> days = [];
         Assert.Equal(0, days.Capacity);
 
         days.Add("Mon");

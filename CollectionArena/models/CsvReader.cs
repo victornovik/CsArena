@@ -11,7 +11,7 @@ internal class CsvReader(string csvFilePath)
         using var @in = new StreamReader(csvFilePath);
         @in.ReadLine(); // skip header
 
-        var countries = new List<Country>();
+        List<Country> countries = [];
 
         while (@in.ReadLine() is { } line)
             countries.Add(ParseLine(line));

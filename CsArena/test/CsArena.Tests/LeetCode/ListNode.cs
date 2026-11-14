@@ -7,7 +7,7 @@ public class ListNode(int v = 0, ListNode? n = null)
 
     public List<int> ToList()
     {
-        var list = new List<int>();
+        List<int> list = [];
         for (var current = this; current != null; current = current.next)
         {
             list.Add(current.val);

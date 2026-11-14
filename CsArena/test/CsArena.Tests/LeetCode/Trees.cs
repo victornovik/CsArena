@@ -137,7 +137,7 @@ public static class Trees
         if (root == null)
             return [];
 
-        var res = new List<double>();
+        List<double> res = [];
         var queue = new Queue<TreeNode>([root]);
         for (var treeLevelSize = queue.Count; treeLevelSize > 0; treeLevelSize = queue.Count)
         {
@@ -292,7 +292,7 @@ public static class Trees
         IList<IList<int>> res = [];
         for (var treeLevelSize = queue.Count; treeLevelSize > 0; treeLevelSize = queue.Count)
         {
-            var level = new List<int>();
+            List<int> level = [];
             for (var i = 0; i < treeLevelSize; i++)
             {
                 var cur = queue.Dequeue();

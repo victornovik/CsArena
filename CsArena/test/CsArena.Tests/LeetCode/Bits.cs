@@ -37,7 +37,7 @@ public static class Bits
     */
     public static int SingleNumber_HashSet(int[] nums)
     {
-        var unique = new HashSet<int>();
+        HashSet<int> unique = [];
         foreach (var n in nums)
         {
             if (!unique.Add(n))

@@ -12,7 +12,7 @@ public class DelegateTests
     [Fact]
     public void CaptureVariablePuzzler()
     {
-        var printers = new List<Printer>();
+        List<Printer> printers = [];
         
         for (var i = 0; i < 10; i++)
         {

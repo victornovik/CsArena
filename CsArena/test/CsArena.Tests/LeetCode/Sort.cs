@@ -97,7 +97,7 @@ public static class Sort
 
     public static int[] RelativeSortArray_Linq2(int[] arr1, int[] arr2)
     {
-        var other = new List<int>();
+        List<int> other = [];
         var found = arr2.ToDictionary(k => k, _ => 0);
 
         foreach (var item in arr1)

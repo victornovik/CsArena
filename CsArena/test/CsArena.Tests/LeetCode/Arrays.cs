@@ -775,7 +775,7 @@ public static class Arrays
     */
     public static bool ContainsNearbyAlmostDuplicate(int[] nums, int indexDiff, int valueDiff)
     {
-        var window = new SortedSet<int>();
+        SortedSet<int> window = [];
 
         for (var i = 0; i < nums.Length; i++)
         {

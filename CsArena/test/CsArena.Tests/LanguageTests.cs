@@ -79,7 +79,7 @@ public class LanguageTests
     {
         var total = 0;
 
-        var actions = new List<Action>();
+        List<Action> actions = [];
         for (var i = 0; i < 10; i++)
         {
             // ReSharper disable once AccessToModifiedClosure

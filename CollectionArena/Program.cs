@@ -66,7 +66,7 @@ public class AuditHub
     {
         var success = true;
 
-        var tasks = new List<Task>();
+        List<Task> tasks = [];
         foreach (var msg in messages)
         {
             tasks.Add(msg.DoAudit());

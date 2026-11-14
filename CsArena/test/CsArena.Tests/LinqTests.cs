@@ -53,11 +53,11 @@ public class LinqTests
     [Fact]
     public void BasicQueries()
     {
-        var developers = new List<Employee>()
-        {
+        List<Employee> developers =
+        [
             new() { Id = 1, Name = "Scott" },
             new() { Id = 2, Name = "Chris" }
-        };
+        ];
         Assert.Equal(2, developers.MyCount());
 
         var startsWithS = developers.Single(e => e.Name!.StartsWith('S'));
@@ -80,11 +80,11 @@ public class LinqTests
     [Fact]
     public void ExtensionMethods()
     {
-        var sales = new List<Employee>
-        {
+        List<Employee> sales =
+        [
             new() { Id = 3, Name = "Alex" },
             new() { Id = 3, Name = "Victor" }
-        };
+        ];
         Assert.Equal(2, sales.MyCount());
     }
 
@@ -98,13 +98,13 @@ public class LinqTests
     [Fact]
     public void CustomLinqOperator()
     {
-        var movies = new List<Movie>
-        {
+        List<Movie> movies =
+        [
             new() { Title = "The Dark Knight", Rating = 8.9f, Year = 2008 },
             new() { Title = "The King's Speech", Rating = 8.0f, Year = 2010 },
             new() { Title = "Casablanca", Rating = 8.5f, Year = 1942 },
             new() { Title = "Star Wars V", Rating = 8.7f, Year = 1980 }
-        };
+        ];
 
         var methodSyntax = movies.Where(m => m.Year > 2000);
 
@@ -122,13 +122,13 @@ public class LinqTests
     [Fact]
     public void Cast()
     {
-        var objects = new List<object>
-        {
+        List<object> objects =
+        [
             new Movie { Title = "The Dark Knight", Rating = 8.9f, Year = 2008 },
             new Movie { Title = "The King's Speech", Rating = 8.0f, Year = 2010 },
             new Movie { Title = "Casablanca", Rating = 8.5f, Year = 1942 },
             new Movie { Title = "Star Wars V", Rating = 8.7f, Year = 1980 }
-        };
+        ];
 
         var stronglyTypedList = objects.Cast<Movie>().ToList();
 
@@ -277,14 +277,14 @@ public class LinqTests
     [Fact]
     public void GroupBy()
     {
-        var movies = new[]
-        {
+        Movie[] movies =
+        [
             new Movie { Title = "The Dark Knight",   Rating = 8.9f, Year = 2008 },
             new Movie { Title = "The King's Speech", Rating = 8.0f, Year = 2010 },
             new Movie { Title = "Casablanca",        Rating = 8.5f, Year = 1942 },
             new Movie { Title = "Star Wars V",       Rating = 8.7f, Year = 1980 },
             new Movie { Title = "Inception",         Rating = 8.8f, Year = 2010 },
-        };
+        ];
 
         var byDecade = movies
             .GroupBy(m => m.Year / 10 * 10)
@@ -342,12 +342,12 @@ public class LinqTests
     [Fact]
     public void InnerJoin()
     {
-        var developers = new[]
-        {
+        Employee[] developers =
+        [
             new Employee { Id = 1, Name = "Scott" },
             new Employee { Id = 2, Name = "Chris" },
             new Employee { Id = 3, Name = "Alice" },
-        };
+        ];
         var assignments = new[]
         {
             (DevId: 1, Project: "LINQ"),
@@ -367,12 +367,12 @@ public class LinqTests
     [Fact]
     public void DistinctBy()
     {
-        var movies = new[]
-        {
+        Movie[] movies =
+        [
             new Movie { Title = "Inception",         Rating = 8.8f, Year = 2010 },
             new Movie { Title = "The King's Speech", Rating = 8.0f, Year = 2010 },
             new Movie { Title = "Casablanca",        Rating = 8.5f, Year = 1942 },
-        };
+        ];
 
         // One representative per year — first occurrence wins
         var distinctYears = movies.DistinctBy(m => m.Year).Select(m => m.Title).ToList();
@@ -383,12 +383,12 @@ public class LinqTests
     [Fact]
     public void MinByMaxBy()
     {
-        var movies = new[]
-        {
+        Movie[] movies =
+        [
             new Movie { Title = "The Dark Knight",   Rating = 8.9f, Year = 2008 },
             new Movie { Title = "The King's Speech", Rating = 8.0f, Year = 2010 },
             new Movie { Title = "Casablanca",        Rating = 8.5f, Year = 1942 },
-        };
+        ];
 
         Assert.Equal("The King's Speech", movies.MinBy(m => m.Rating)!.Title);
         Assert.Equal("The Dark Knight",   movies.MaxBy(m => m.Rating)!.Title);
