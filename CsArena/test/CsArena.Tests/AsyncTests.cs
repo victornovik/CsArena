@@ -626,7 +626,7 @@ public class AsyncTests
     public void ReentrantLockTest()
     {
         var i = 0;
-        var syncObject = new object();
+        var syncObject = new Lock();
 
         lock (syncObject)
         {
