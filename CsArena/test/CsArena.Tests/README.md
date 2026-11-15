@@ -1,4 +1,4 @@
-# CsArena.Tests
+﻿# CsArena.Tests
 
 Unit-test and exploration project for C# language features, BCL APIs, concurrency primitives, and LeetCode algorithm implementations. Tests are self-contained learning artefacts — the goal is to capture *actual runtime behaviour* as executable, runnable assertions.
 

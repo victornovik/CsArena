@@ -1,4 +1,4 @@
-namespace CollectionArena.models.Common;
+﻿namespace CollectionArena.models.Common;
 
 public static class Operators
 {

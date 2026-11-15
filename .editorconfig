@@ -8,9 +8,10 @@ indent_style = space
 indent_size = 4
 trim_trailing_whitespace = true
 
-# Keep each file's existing BOM: most C# sources and project files carry one, so don't pin a charset here.
-[*.{cs,csproj,props,targets}]
-charset = unset
+# UTF-8 with BOM for C# sources, MSBuild files, the solution file and Markdown.
+# Not applied to .json, .gitignore, .gitattributes or this file: a BOM can break their parsers.
+[*.{cs,csproj,props,targets,slnx,md}]
+charset = utf-8-bom
 
 [*.{csproj,props,targets,slnx,json,yml,yaml}]
 indent_size = 2

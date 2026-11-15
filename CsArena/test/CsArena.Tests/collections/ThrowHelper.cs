@@ -1,4 +1,4 @@
-namespace CsArena.Tests.collections;
+﻿namespace CsArena.Tests.collections;
 
 internal static class ThrowHelper
 {

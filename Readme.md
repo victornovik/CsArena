@@ -1,4 +1,4 @@
-## Make sure .NET SDK 10 is installed
+﻿## Make sure .NET SDK 10 is installed
 ```powershell
 dotnet --info
 ```

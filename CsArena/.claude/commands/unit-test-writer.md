@@ -1,4 +1,4 @@
-Write a complete, production-quality unit test for the CsArena.Tests project at senior C# level.
+﻿Write a complete, production-quality unit test for the CsArena.Tests project at senior C# level.
 
 ## What to produce
 
