@@ -13,6 +13,7 @@ public static class GcCollection
 }
 
 [Collection(GcCollection.Name)]
+[Category(TestCategories.Gc)]
 public class GcTests
 {
     internal class JsonProcessor : IDisposable

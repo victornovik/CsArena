@@ -2,6 +2,7 @@
 
 using static CsArena.Core.LeetCode.Strings;
 
+[Category(TestCategories.LeetCode)]
 public class StringsTests
 {
     [Fact]

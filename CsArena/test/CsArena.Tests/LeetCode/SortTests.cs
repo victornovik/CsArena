@@ -2,6 +2,7 @@
 
 using static CsArena.Core.LeetCode.Sort;
 
+[Category(TestCategories.LeetCode)]
 public class SortTests
 {
     [Fact]

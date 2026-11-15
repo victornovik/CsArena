@@ -2,6 +2,7 @@
 
 using static CsArena.Core.LeetCode.Backtracking;
 
+[Category(TestCategories.LeetCode)]
 public class BacktrackingTests
 {
     [Fact]

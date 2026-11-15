@@ -2,6 +2,7 @@
 
 using static CsArena.Core.LeetCode.Arrays;
 
+[Category(TestCategories.LeetCode)]
 public class ArraysTests
 {
     [Fact]

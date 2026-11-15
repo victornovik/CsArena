@@ -153,10 +153,11 @@ public void DescriptiveName(int threadCount)
 
 ## Skip policy
 
-`[Fact(Skip = "reason")]` is only for:
+Tests that reach an external URL use `[NetworkFact]` (skipped unless `CSARENA_NETWORK_TESTS=1`, tagged `category=network`) — not a hard-coded `Skip`.
 
-- Integration tests hitting external URLs — reason: `"Integration test reaching https://..."`
-- Tests that are **genuinely** non-deterministic (scheduler-dependent) — first try to eliminate the non-determinism:
+Add `[Category(TestCategories.X)]` (`Network`, `Gc`, `Concurrency`, `Slow`, `LeetCode`) to tests or classes of those kinds, so they can be selected with `--filter-trait "category=x"`: GC-state assertions go in `GcTests` (the non-parallel `gc` collection); a test taking about 300 ms or more is `Slow`.
+
+`[Fact(Skip = "reason")]` is only for tests that are **genuinely** non-deterministic (scheduler-dependent) — first try to eliminate the non-determinism:
   - Replace fixed `Thread.Sleep` delays with `while (!task.IsCompleted) Thread.Yield()`
   - Replace `Task.Delay(n).Wait()` (thread-pool pressure) with `Thread.Sleep(n)`
   - Replace fixed polling timeouts with `await Task.WhenAll(...)`

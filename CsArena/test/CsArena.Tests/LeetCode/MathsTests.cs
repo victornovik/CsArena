@@ -2,6 +2,7 @@
 
 using static CsArena.Core.LeetCode.Maths;
 
+[Category(TestCategories.LeetCode)]
 public class MathsTests
 {
     [Fact]

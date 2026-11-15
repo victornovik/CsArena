@@ -4,6 +4,7 @@ using CsArena.Core.LeetCode;
 
 using static CsArena.Core.LeetCode.Trees;
 
+[Category(TestCategories.LeetCode)]
 public class TreesTests
 {
     [Fact]

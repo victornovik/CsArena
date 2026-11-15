@@ -21,8 +21,9 @@ dotnet test --project CsArena/test/CsArena.Tests --filter-class "CsArena.Tests.A
 # Single method (wildcards allowed)
 dotnet test --project CsArena/test/CsArena.Tests --filter-method "*ExtensionIndexerTest"
 
-# By trait (e.g. skip the HTTP integration tests)
-dotnet test --project CsArena/test/CsArena.Tests --filter-not-trait "type=http"
+# By category (see "Test categories"): only GC tests, or everything except the slow ones
+dotnet test --project CsArena/test/CsArena.Tests --filter-trait "category=gc"
+dotnet test --project CsArena/test/CsArena.Tests --filter-not-trait "category=slow"
 
 # List discovered tests without running them
 dotnet test --project CsArena/test/CsArena.Tests --list-tests
@@ -262,11 +263,36 @@ public void MyAlgorithm(int input, int expected)
 
 Each `[InlineData]` is an independent parallel test. Keep cases fully independent.
 
+### `[NetworkFact]` — tests that reach the network
+
+Skipped unless the environment variable `CSARENA_NETWORK_TESTS=1` is set, and tagged `category=network`. The three tests in `HttpTests` use it instead of a hard-coded `Skip`, so they can be switched on without editing code:
+
+```bash
+CSARENA_NETWORK_TESTS=1 dotnet test --project CsArena/test/CsArena.Tests --filter-trait "category=network"   # bash
+$env:CSARENA_NETWORK_TESTS = "1"; dotnet test --project CsArena/test/CsArena.Tests --filter-trait "category=network"   # PowerShell
+```
+
+`NetworkFactAttribute` sets `Skip`, `SkipUnless` and `SkipType` (xUnit's conditional-skip mechanism); a test of your own can do the same with `[Fact(Skip = "reason", SkipUnless = nameof(Prop), SkipType = typeof(Env))]`.
+
 ### `[Fact(Skip = "reason")]` — intentional skip
 
-Only for:
-- HTTP integration tests reaching external URLs: `Skip = "Integration test reaching https://..."`
-- Genuinely non-deterministic scheduler-dependent behaviour after all determinism fixes have been exhausted
+Only for genuinely non-deterministic scheduler-dependent behaviour, after all determinism fixes have been exhausted. Tests that need an external resource should use a conditional skip (`[NetworkFact]`) instead of an unconditional one.
+
+---
+
+## Test categories
+
+`[Category(TestCategories.X)]` (in `TestCategories.cs`) adds a `category` trait to a test or a whole class. Select with `--filter-trait "category=<name>"`, exclude with `--filter-not-trait "category=<name>"`.
+
+| Category | Applied to | Tests |
+|---|---|---|
+| `network` | `[NetworkFact]` tests in `HttpTests` | 3 |
+| `gc` | `GcTests` (runs alone, non-parallel collection) | 3 |
+| `concurrency` | `AsyncTests` (all carry a per-test timeout) | 31 |
+| `slow` | tests of about 300 ms or more: `StopWatchTest`, `AsyncPuzzler`, `AttachedToParentTasks`, `ThreadLocal`, `ConcurrentBag` | 6 |
+| `leetcode` | every `LeetCode/*Tests` class | 144 |
+
+Counts include theory rows. A test can have several categories (`ThreadLocal` is both `concurrency` and `slow`). Durations come from `--show-slowest-tests` on a developer machine, so treat `slow` as a rough label: re-check it when a test's timing changes.
 
 ---
 

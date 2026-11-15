@@ -2,6 +2,7 @@
 
 using CsArena.Core.LeetCode;
 
+[Category(TestCategories.LeetCode)]
 public class TriesTests
 {
     [Fact]

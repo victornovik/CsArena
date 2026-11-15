@@ -4,6 +4,7 @@ using CsArena.Core.LeetCode;
 
 using static CsArena.Core.LeetCode.Lists;
 
+[Category(TestCategories.LeetCode)]
 public class ListsTests
 {
     // Builds a fresh list from values (null for an empty array). Every theory case creates its own

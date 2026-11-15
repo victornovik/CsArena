@@ -4,7 +4,7 @@ namespace CsArena.Tests;
 
 public class HttpTests
 {
-    [Fact (Skip = "Integration test reaching https://google.com"), Trait("type", "https")]
+    [NetworkFact]
     public async Task HttpClientTest()
     {
         for (var i = 0; i < 10 /*100_000*/; ++i)
@@ -25,7 +25,7 @@ public class HttpTests
         "https://learn.microsoft.com/visualstudio"
     ];
 
-    [Fact (Skip = "Integration test reaching https://learn.microsoft.com"), Trait("type", "http")]
+    [NetworkFact]
     public async Task HttpClient_WhenAny()
     {
         var totalPageSizes = await SumPageSizesAsync();
@@ -57,7 +57,7 @@ public class HttpTests
         }
     }
 
-    [Fact (Skip = "Integration test reaching https://learn.microsoft.com"), Trait("type", "http")]
+    [NetworkFact]
     public async Task HttpClient_CancelAfter()
     {
         var cts = new CancellationTokenSource();

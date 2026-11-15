@@ -2,6 +2,7 @@
 
 using static CsArena.Core.LeetCode.Bits;
 
+[Category(TestCategories.LeetCode)]
 public class BitsTests
 {
     [Fact]

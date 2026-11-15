@@ -2,6 +2,7 @@
 
 using static CsArena.Core.LeetCode.BinarySearch;
 
+[Category(TestCategories.LeetCode)]
 public class BinarySearchTests
 {
     [Fact]

@@ -4,6 +4,7 @@ using System.Diagnostics;
 
 namespace CsArena.Tests;
 
+[Category(TestCategories.Concurrency)]
 public class AsyncTests
 {
     [Fact(Timeout = TestTimeouts.Default)]
@@ -78,6 +79,7 @@ public class AsyncTests
     }
 
     [Fact(Timeout = TestTimeouts.Default)]
+    [Category(TestCategories.Slow)]
     public async Task AttachedToParentTasks()
     {
         var sync = new Lock();
@@ -359,6 +361,7 @@ public class AsyncTests
     [Theory(Timeout = TestTimeouts.Default)]
     [InlineData(10)]
     [InlineData(100)]
+    [Category(TestCategories.Slow)]
     public async Task ConcurrentBag(int size)
     {
         var bag = new ConcurrentBag<int>();
@@ -456,6 +459,7 @@ public class AsyncTests
     }
 
     [Fact(Timeout = TestTimeouts.Default)]
+    [Category(TestCategories.Slow)]
     public void ThreadLocal()
     {
         ThreadLocal<decimal> threadLocal = new(trackAllValues: true);
@@ -614,6 +618,7 @@ public class AsyncTests
 
 #pragma warning disable xUnit1031 //Test methods should not use blocking task operations, as they can cause deadlocks. Use an async test method and await instead.
     [Fact(Timeout = TestTimeouts.Default)]
+    [Category(TestCategories.Slow)]
     public void AsyncPuzzler()
     {
         var text = SaySomething();
@@ -732,6 +737,7 @@ public class AsyncTests
         The fix is to add a small tolerance that accounts for the inter-clock resolution gap. On Windows the system timer resolution is ~15.6ms
      */
     [Fact(Timeout = TestTimeouts.Default)]
+    [Category(TestCategories.Slow)]
     public async Task StopWatchTest()
     {
         const int DelayInMillis = 1000;

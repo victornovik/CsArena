@@ -2,6 +2,7 @@
 
 using static CsArena.Core.LeetCode.Intervals;
 
+[Category(TestCategories.LeetCode)]
 public class IntervalsTests
 {
     [Fact]

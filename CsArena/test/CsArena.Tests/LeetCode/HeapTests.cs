@@ -4,6 +4,7 @@ using CsArena.Core.LeetCode;
 
 using static CsArena.Core.LeetCode.Heap;
 
+[Category(TestCategories.LeetCode)]
 public class HeapTests
 {
     [Fact]

@@ -2,6 +2,7 @@
 
 using static CsArena.Core.LeetCode.Combinatorics;
 
+[Category(TestCategories.LeetCode)]
 public class CombinatoricsTests
 {
     [Fact]

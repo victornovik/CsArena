@@ -4,6 +4,7 @@ using CsArena.Core.LeetCode;
 
 using static CsArena.Core.LeetCode.Stacks;
 
+[Category(TestCategories.LeetCode)]
 public class StacksTests
 {
     [Fact]
