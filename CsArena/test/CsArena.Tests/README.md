@@ -197,6 +197,7 @@ test/CsArena.Tests/                 # Tests (namespace CsArena.Tests, CsArena.Te
 | Local variables | Yes | Stack-local |
 | `static` mutable fields on a test class | **No** | Shared across all parallel instances in the AppDomain |
 | Named OS resources with a fixed string name | **No** | System-wide; parallel `[Theory]` cases collide |
+| `Environment.SetEnvironmentVariable` | **No** | Process-wide: every parallel test that reads the environment sees it. Put such tests in a non-parallel collection (`ConfigurationTests` uses `EnvironmentCollection`) and restore the old values in `finally` |
 | `Console.Out` / `Console.Error` | No | Use `ITestOutputHelper` instead |
 
 ### Rules
@@ -385,7 +386,7 @@ public class MyTests(ITestOutputHelper output)
 }
 ```
 
-`TestConfigHelper.PrintConfig(output)` and `PrintConfigProviders(output)` use this pattern.
+`TestConfigHelper.PrintConfig(output)` and `PrintConfigProviders(output)` use this pattern; they also return the lines they print, so a test can assert on them (`ConfigurationTests.PrintConfigTest` and `PrintConfigProvidersTest` do) instead of only printing.
 
 ---
 
@@ -544,6 +545,7 @@ dotnet user-secrets set "MySection:MyKey" "value" --id acab85f1-6255-410f-a9ef-b
 | `Task.Delay(n).Wait()` in a sync event handler | Thread-pool pressure delays handler past a racing async continuation (was in `WaitOnAsyncVoid` — fixed) | `Thread.Sleep(n)` or remove |
 | `Thread.Sleep(n)` to guarantee task completion before `await` | Timer-resolution race under load (was in `ContinueAfterAwaitInTheSameThread` — fixed) | `while (!task.IsCompleted) Thread.Yield()` |
 | Fixed `await Task.Delay(n)` to wait for background tasks | Race when system is slow (was `await Task.Delay(500)` in `AttachedToParentTasks` — fixed) | `await Task.WhenAll(task1!, task2!)` |
+| A test that only prints (calls a helper, writes to `ITestOutputHelper`) and asserts nothing | Cannot fail, so it hides breakage; the two `Print...` tests in `ConfigurationTests` were like this and were also unaffected by a leaked environment variable that broke them once they asserted | Make the helper return what it prints and assert on it |
 | `using Xunit;` explicit directive | Redundant — global implicit using already present | Remove |
 | `using Xunit.Abstractions;` | Does not compile in xUnit v3 | Remove — `ITestOutputHelper` is now in `Xunit` namespace |
 

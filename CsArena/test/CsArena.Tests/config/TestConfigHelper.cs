@@ -41,25 +41,40 @@ public static class TestConfigHelper
         return GetConfigurationRoot().Get<Options>() ?? new Options();
     }
 
-    public static void PrintConfig(ITestOutputHelper output, IConfiguration? config = null)
+    /// <summary>Writes every configuration key as "path - value" (parents before children) and returns the lines.</summary>
+    public static IReadOnlyList<string> PrintConfig(ITestOutputHelper output, IConfiguration? config = null)
     {
         config ??= GetConfigurationRoot(enableSecrets: true, enableEnvVar: true, enableCmdLine: true);
 
+        var lines = new List<string>();
+        CollectLines(config, lines);
+        foreach (var line in lines)
+        {
+            output.WriteLine(line);
+        }
+        return lines;
+    }
+
+    private static void CollectLines(IConfiguration config, List<string> lines)
+    {
         foreach (var pair in config.GetChildren())
         {
-            var res = $"{pair.Path} - {pair.Value}";
-            // Console.WriteLine(res);
-            output.WriteLine(res);
-            PrintConfig(output, pair);
+            lines.Add($"{pair.Path} - {pair.Value}");
+            CollectLines(pair, lines);
         }
     }
 
-    public static void PrintConfigProviders(ITestOutputHelper output)
+    /// <summary>Writes a header and one line per configuration provider, in registration order, and returns the lines.</summary>
+    public static IReadOnlyList<string> PrintConfigProviders(ITestOutputHelper output)
     {
-        output.WriteLine("CONFIGURATION PROVIDERS:");
-        foreach (var provider in GetConfigurationRoot(enableSecrets: true, enableEnvVar: true, enableCmdLine: true).Providers.ToArray())
+        List<string> lines = ["CONFIGURATION PROVIDERS:"];
+        lines.AddRange(GetConfigurationRoot(enableSecrets: true, enableEnvVar: true, enableCmdLine: true)
+            .Providers.Select(provider => $"{provider}"));
+
+        foreach (var line in lines)
         {
-            output.WriteLine($"{provider}");
+            output.WriteLine(line);
         }
+        return lines;
     }
 }

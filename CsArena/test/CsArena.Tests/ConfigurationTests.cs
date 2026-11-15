@@ -2,19 +2,53 @@
 using Microsoft.Extensions.Configuration;
 namespace CsArena.Tests;
 
+// Environment variables are process-wide: EnvironmentVariablesTest sets some, and any test that reads them
+// (PrintConfigTest, ...) would see them while running in parallel. This collection runs alone, with no other test executing.
+[CollectionDefinition(Name, DisableParallelization = true)]
+public static class EnvironmentCollection
+{
+    public const string Name = "environment";
+}
+
+[Collection(EnvironmentCollection.Name)]
 [Category(TestCategories.Bcl)]
 public class ConfigurationTests(ITestOutputHelper output)
 {
     [Fact]
     public void PrintConfigTest()
     {
-        TestConfigHelper.PrintConfig(output);
+        var lines = TestConfigHelper.PrintConfig(output);
+
+        // JSON settings, printed as "path - value"; a section has no value of its own
+        Assert.Contains("Books - ", lines);
+        Assert.Contains("Books:Author - Jon Skeet", lines);
+        Assert.Contains("Books:Price - 15.4", lines);
+        // Secrets are registered after the JSON files, so they win over appsettings.local.json
+        Assert.Contains("Credentials:Dev:UserName - user_from_secrets", lines);
+        Assert.Contains("Credentials:Stg:Password - password_from_secrets", lines);
+        // A section is printed before its children
+        Assert.True(lines.ToList().IndexOf("Books - ") < lines.ToList().IndexOf("Books:Author - Jon Skeet"));
+        // Environment variables and command-line arguments are layered on top, so there is more than the JSON files hold
+        Assert.True(lines.Count > 12, $"expected the environment variables as well, got {lines.Count} lines");
     }
 
     [Fact]
     public void PrintConfigProvidersTest()
     {
-        TestConfigHelper.PrintConfigProviders(output);
+        var lines = TestConfigHelper.PrintConfigProviders(output);
+
+        // Providers are listed in registration order, and later providers override earlier ones
+        Assert.Equal(
+            [
+                "CONFIGURATION PROVIDERS:",
+                "JsonConfigurationProvider for 'config/appsettings.json' (Optional)",
+                "JsonConfigurationProvider for 'config/appsettings.local.json' (Optional)",
+                "JsonConfigurationProvider for 'secrets.json' (Optional)",
+                "MemoryConfigurationProvider",
+                "EnvironmentVariablesConfigurationProvider",
+                "CommandLineConfigurationProvider",
+            ],
+            lines);
     }
 
     [Fact]
@@ -123,23 +157,36 @@ public class ConfigurationTests(ITestOutputHelper output)
     {
         // In environment variables, a colon separator may not work on all platforms.
         // A double underscore __ is supported by all platforms and is automatically converted into a colon :.
-        Environment.SetEnvironmentVariable("Books__Price", "55.66");
-        Environment.SetEnvironmentVariable("Books__Author", "Pikul");
-        Environment.SetEnvironmentVariable("Books__Category", "History");
-        Environment.SetEnvironmentVariable("Credentials__Dev__UserName", "RealUser");
-        Environment.SetEnvironmentVariable("Credentials__Dev__Password", "123");
+        var variables = new Dictionary<string, string>
+        {
+            ["Books__Price"] = "55.66",
+            ["Books__Author"] = "Pikul",
+            ["Books__Category"] = "History",
+            ["Credentials__Dev__UserName"] = "RealUser",
+            ["Credentials__Dev__Password"] = "123",
+        };
+        // The environment is process-wide: remember the old values and put them back, even if an assertion fails
+        var previous = variables.Keys.ToDictionary(name => name, name => Environment.GetEnvironmentVariable(name));
+        try
+        {
+            foreach (var (name, value) in variables) Environment.SetEnvironmentVariable(name, value);
 
-        var cfg = TestConfigHelper.GetConfigurationRoot(enableSecrets: true, enableEnvVar: true);
+            var cfg = TestConfigHelper.GetConfigurationRoot(enableSecrets: true, enableEnvVar: true);
 
-        Assert.Equal(55.66, cfg.GetValue<double>("Books:Price"));
-        Assert.Equal("Pikul", cfg.GetValue<string>("Books:Author"));
-        Assert.Equal("History", cfg.GetValue<string>("Books:Category"));
+            Assert.Equal(55.66, cfg.GetValue<double>("Books:Price"));
+            Assert.Equal("Pikul", cfg.GetValue<string>("Books:Author"));
+            Assert.Equal("History", cfg.GetValue<string>("Books:Category"));
 
-        // Settings from env variables override UserSecrets, `appsettings.local.json` and `appsettings.json`
-        Assert.Equal("RealUser", cfg.GetValue<string>("Credentials:Dev:UserName"));
-        Assert.Equal("123", cfg.GetValue<string>("Credentials:Dev:Password"));
+            // Settings from env variables override UserSecrets, `appsettings.local.json` and `appsettings.json`
+            Assert.Equal("RealUser", cfg.GetValue<string>("Credentials:Dev:UserName"));
+            Assert.Equal("123", cfg.GetValue<string>("Credentials:Dev:Password"));
 
-        output.WriteLine(cfg.GetDebugView());
+            output.WriteLine(cfg.GetDebugView());
+        }
+        finally
+        {
+            foreach (var (name, value) in previous) Environment.SetEnvironmentVariable(name, value);
+        }
     }
 
     [Fact]
