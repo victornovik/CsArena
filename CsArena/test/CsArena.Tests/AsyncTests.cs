@@ -64,10 +64,10 @@ public class AsyncTests
     {
         var task = Task.Factory.StartNew(async () =>
             {
-                await Task.Delay(100);
+                await Task.Delay(100, TestContext.Current.CancellationToken);
                 return "Victor";
             },
-            CancellationToken.None,
+            TestContext.Current.CancellationToken,
             TaskCreationOptions.DenyChildAttach,
             TaskScheduler.Default
         );
@@ -216,7 +216,7 @@ public class AsyncTests
 
         async ValueTask<int> RollAsync()
         {
-            await Task.Delay(50);
+            await Task.Delay(50, TestContext.Current.CancellationToken);
             int diceRoll = rnd.Next(1, 7);
             return diceRoll;
         }
@@ -255,7 +255,7 @@ public class AsyncTests
         {
             try
             {
-                await Task.Delay(50);
+                await Task.Delay(50, TestContext.Current.CancellationToken);
                 lock (sync)
                     res += "-OnButtonClicked2Async";
 
@@ -511,7 +511,7 @@ public class AsyncTests
             Assert.Equal(expected, asyncLocal.Value);
             Assert.Equal(expected, threadLocal.Value);
 
-            await Task.Delay(100);
+            await Task.Delay(100, TestContext.Current.CancellationToken);
 
             Assert.Equal(expected, asyncLocal.Value);
 
@@ -607,7 +607,7 @@ public class AsyncTests
 
     async Task<string> SaySomething()
     {
-        await Task.Delay(500);
+        await Task.Delay(500, TestContext.Current.CancellationToken);
         result = "Hello world";
         return "Something";
     }
