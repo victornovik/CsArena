@@ -2,10 +2,6 @@
 using System.Diagnostics;
 using System.Text;
 
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-#pragma warning disable CS8603 // Possible null reference return.
-#pragma warning disable CS8604 // Possible null reference argument for parameter
-
 namespace CsArena.Tests.collections;
 
 public class SkipListCollection<T> : ICollection<T>
@@ -26,7 +22,8 @@ public class SkipListCollection<T> : ICollection<T>
         Debug.Assert(comparer != null);
         _comparer = comparer;
         _random = new Random(seed);
-        _head = new SkipListSetNode<T>(default(T), MaxLevel);
+        // The head sentinel never exposes its key, so the null default is never read.
+        _head = new SkipListSetNode<T>(default!, MaxLevel);
         _nil = _head;
         _version = 0;
 
@@ -36,7 +33,7 @@ public class SkipListCollection<T> : ICollection<T>
         }
     }
 
-    internal SkipListSetNode<T> FindNode(T item)
+    internal SkipListSetNode<T>? FindNode(T item)
     {
         var node = Search(item);
         return node;
@@ -253,7 +250,7 @@ public class SkipListCollection<T> : ICollection<T>
 
     private SkipListSetNode<T> AppendNode(StringBuilder[] result, SkipListSetNode<T> node)
     {
-        result[0].Append(node.Key.ToString().PadRight(4));
+        result[0].Append((node.Key?.ToString() ?? string.Empty).PadRight(4));
 
         var neighbour = node.Forward[0];
         for (var i = 0; i < _level; i++)

@@ -1,7 +1,5 @@
 ﻿using System.Collections;
 
-#pragma warning disable CS8604 // Possible null reference argument for parameter
-
 namespace CsArena.Tests.collections;
 
 public class SkipListDictionary<TKey, TValue>:IDictionary<TKey, TValue>
@@ -57,9 +55,10 @@ public class SkipListDictionary<TKey, TValue>:IDictionary<TKey, TValue>
 
     public bool IsReadOnly => _set.IsReadOnly;
 
+    // Lookups build a probe pair: KeyValuePairComparer compares keys only, so the value is never read (hence default!).
     public bool ContainsKey(TKey key)
     {
-        var node = _set.FindNode(new KeyValuePair<TKey, TValue>(key, default(TValue)));
+        var node = _set.FindNode(new KeyValuePair<TKey, TValue>(key, default!));
         return node != null;
     }
 
@@ -70,7 +69,7 @@ public class SkipListDictionary<TKey, TValue>:IDictionary<TKey, TValue>
 
     public bool Remove(TKey key)
     {
-        return _set.Remove(new KeyValuePair<TKey, TValue>(key, default(TValue)));
+        return _set.Remove(new KeyValuePair<TKey, TValue>(key, default!));
     }
 
     public bool TryGetValue(TKey key, out TValue value)
@@ -86,7 +85,7 @@ public class SkipListDictionary<TKey, TValue>:IDictionary<TKey, TValue>
             {
                 throw new ArgumentNullException();
             }
-            var node = _set.FindNode(new KeyValuePair<TKey, TValue>(key, default(TValue)));
+            var node = _set.FindNode(new KeyValuePair<TKey, TValue>(key, default!));
             if (node == null)
             {
                 throw new KeyNotFoundException();
