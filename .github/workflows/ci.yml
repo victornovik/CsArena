@@ -52,8 +52,10 @@ jobs:
 
       # global.json selects Microsoft.Testing.Platform, hence --solution instead of a positional path.
       # Coverage comes from Microsoft.Testing.Extensions.CodeCoverage (referenced by CsArena.Tests).
+      # --timeout aborts the whole test session if something hangs (individual tests have their own Timeout);
+      # --show-slowest-tests lists the ten slowest tests in the run summary.
       - name: Test
-        run: dotnet test --solution CsArena.slnx --configuration Release --no-build --coverage --coverage-output-format cobertura
+        run: dotnet test --solution CsArena.slnx --configuration Release --no-build --coverage --coverage-output-format cobertura --timeout 10m --show-slowest-tests 10
 
       - name: Coverage summary and threshold
         shell: bash

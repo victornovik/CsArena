@@ -38,6 +38,7 @@ Test methods run concurrently with each other, within a class and across classes
 | Reentrant lock | `Lock` is reentrant — it is fine to use |
 | GC / timing-sensitive asserts (`GC.GetGeneration`, elapsed time) | Sensitive to other tests allocating in parallel — keep assertions tolerant |
 | Diagnostic output | `ITestOutputHelper` injected via constructor — never `Console.Write` |
+| Blocking or deadlock-prone test (threads, locks, OS primitives, `Join`, `WaitOne`) | Add `Timeout = TestTimeouts.Default` to the `[Fact]`/`[Theory]` (5 s); xUnit has no global default. Pass `TestContext.Current.CancellationToken` to every call that accepts a token. |
 
 ---
 

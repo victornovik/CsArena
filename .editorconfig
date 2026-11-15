@@ -33,3 +33,9 @@ dotnet_diagnostic.IDE0305.severity = suggestion
 [*.csv]
 end_of_line = unset
 trim_trailing_whitespace = false
+
+# AsyncTests exercises threads, locks and OS primitives whose blocking calls cannot observe a CancellationToken.
+# Every test there has a Timeout (TestTimeouts.Default) as the safety net, so the "reference the test token"
+# hint (xUnit1069) is only a suggestion for this file.
+[CsArena/test/CsArena.Tests/AsyncTests.cs]
+dotnet_diagnostic.xUnit1069.severity = suggestion

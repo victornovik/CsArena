@@ -42,6 +42,23 @@ dotnet nuget why . SQLitePCLRaw.lib.e_sqlite3
 
 ---
 
+## Timeouts and runner settings
+
+| Setting | Where | Effect |
+|---|---|---|
+| `[Fact(Timeout = TestTimeouts.Default)]` (5 s) | every test in `AsyncTests` | A test that blocks or deadlocks fails with "Test execution timed out" and the run continues. Works for async tests and for synchronous ones (blocked on a lock, `Join`, `WaitOne`, ...); the stuck thread is left behind. |
+| `--timeout 10m` | CI `dotnet test` step | Aborts the whole test session (exit code 3) if it takes longer, as a backstop for hangs outside a timed test. |
+| `--show-slowest-tests 10` | CI `dotnet test` step | Lists the slowest tests in the run summary. |
+| `xunit.runner.json` | test project, copied to the output folder | `culture: invariant` (results do not depend on the machine's locale) and `shutdownForegroundThreadWaitSeconds: 10` (a test that leaves a foreground thread running cannot keep the process alive for more than 10 s after the tests finish). |
+
+Parallelism is configured in one place only: `[assembly: Parallelization(...)]` in `AssemblyInfo.cs` (see the parallelism section); `xunit.runner.json` deliberately has no parallelism keys. xUnit has no global per-test default timeout, so a new test that blocks threads or waits on OS primitives should carry `Timeout = TestTimeouts.Default` itself.
+
+xUnit analyzer rule xUnit1069 asks every test with a `Timeout` to reference `TestContext.Current.CancellationToken`. `AsyncTests` blocks on threads, locks and OS mutexes that cannot observe a token, so `.editorconfig` lowers that rule to a suggestion for that one file; elsewhere, pass the token to the calls that accept it.
+
+Locally, the same flags work on any run, for example `dotnet test --solution CsArena.slnx --timeout 5m --show-slowest-tests 5`.
+
+---
+
 ## Code coverage
 
 Coverage is collected with `Microsoft.Testing.Extensions.CodeCoverage` (Cobertura output) over the code in `CsArena.Core`:

@@ -6,14 +6,14 @@ namespace CsArena.Tests;
 
 public class AsyncTests
 {
-    [Fact]
+    [Fact(Timeout = TestTimeouts.Default)]
     public async Task AwaitOnInt()
     {
         var square = await 5;
         Assert.Equal(25, square);
     }
 
-    [Fact]
+    [Fact(Timeout = TestTimeouts.Default)]
     public async Task ContinueAfterAwaitInTheSameThread()
     {
         var curThread = Thread.CurrentThread.ManagedThreadId;
@@ -28,7 +28,7 @@ public class AsyncTests
         Assert.Equal(curThread, Thread.CurrentThread.ManagedThreadId);
     }
     
-    [Fact]
+    [Fact(Timeout = TestTimeouts.Default)]
     public async Task TaskCompletionSource_Future_Promise()
     {
         // Future-Promise model
@@ -59,7 +59,7 @@ public class AsyncTests
         }
     }
 
-    [Fact]
+    [Fact(Timeout = TestTimeouts.Default)]
     public async Task FactoryStartNew()
     {
         var task = Task.Factory.StartNew(async () =>
@@ -77,7 +77,7 @@ public class AsyncTests
         Assert.Equal("Victor", res);
     }
 
-    [Fact]
+    [Fact(Timeout = TestTimeouts.Default)]
     public async Task AttachedToParentTasks()
     {
         var sync = new Lock();
@@ -121,7 +121,7 @@ public class AsyncTests
             $"Unexpected task completion order: {res}");
     }
 
-    [Fact]
+    [Fact(Timeout = TestTimeouts.Default)]
     public async Task ExceptionCallstack()
     {
         var e1 = await Assert.ThrowsAsync<ArgumentException>(AsyncFacade.Start);
@@ -204,7 +204,7 @@ public class AsyncTests
         }
     }
 
-    [Fact]
+    [Fact(Timeout = TestTimeouts.Default)]
     public async Task ValueTask()
     {
         var rnd = new Random(42);
@@ -222,7 +222,7 @@ public class AsyncTests
         }
     }
 
-    [Fact]
+    [Fact(Timeout = TestTimeouts.Default)]
     public async Task WaitOnAsyncVoid()
     {
         var sync = new Lock();
@@ -277,7 +277,7 @@ public class AsyncTests
         }
     }
     
-    [Theory]
+    [Theory(Timeout = TestTimeouts.Default)]
     [InlineData(64)]
     [InlineData(128)]
     public void ConcurrentQueue(int size)
@@ -305,7 +305,7 @@ public class AsyncTests
         Assert.False(queue.TryPeek(out _));
     }
 
-    [Theory]
+    [Theory(Timeout = TestTimeouts.Default)]
     [InlineData(64)]
     [InlineData(128)]
     public void ConcurrentStack(int size)
@@ -335,7 +335,7 @@ public class AsyncTests
         Assert.False(stack.TryPeek(out _));
     }
 
-    [Theory]
+    [Theory(Timeout = TestTimeouts.Default)]
     [InlineData(64)]
     [InlineData(128)]
     public void ConcurrentDictionary(int size)
@@ -356,7 +356,7 @@ public class AsyncTests
         Assert.Equal(-10, dic.GetOrAdd(2, -20));
     }
 
-    [Theory]
+    [Theory(Timeout = TestTimeouts.Default)]
     [InlineData(10)]
     [InlineData(100)]
     public async Task ConcurrentBag(int size)
@@ -389,7 +389,7 @@ public class AsyncTests
         Assert.False(bag.TryPeek(out _));
     }
 
-    [Fact]
+    [Fact(Timeout = TestTimeouts.Default)]
     public void BlockingCollection()
     {
         const int size = 1000;
@@ -420,7 +420,7 @@ public class AsyncTests
         Assert.True(unboundedQueue.IsCompleted);
     }
 
-    [Fact]
+    [Fact(Timeout = TestTimeouts.Default)]
     public async Task BlockingBoundedCollection()
     {
         const int upperLimit = 10;
@@ -455,7 +455,7 @@ public class AsyncTests
         Assert.Equal(elements, counter);
     }
 
-    [Fact]
+    [Fact(Timeout = TestTimeouts.Default)]
     public void ThreadLocal()
     {
         ThreadLocal<decimal> threadLocal = new(trackAllValues: true);
@@ -475,7 +475,7 @@ public class AsyncTests
         }
     }
 
-    [Fact]
+    [Fact(Timeout = TestTimeouts.Default)]
     public async Task AsyncLocal()
     {
         const int initValue = -1;
@@ -520,7 +520,7 @@ public class AsyncTests
         }
     }
 
-    [Fact]
+    [Fact(Timeout = TestTimeouts.Default)]
     public void InterlockedTest()
     {
         long destination = 0;
@@ -542,7 +542,7 @@ public class AsyncTests
         Assert.Equal(100, destination);
     }
 
-    [Fact]
+    [Fact(Timeout = TestTimeouts.Default)]
     public void Lazy()
     {
         int Fib(int n) => n == 1 ? 1 : n == 2 ? 1 : Fib(n - 1) + Fib(n - 2);
@@ -560,7 +560,7 @@ public class AsyncTests
         public readonly int[] WrittenByThread = new int[threadCount];
     }
 
-    [Theory]
+    [Theory(Timeout = TestTimeouts.Default)]
     [InlineData(5)]
     [InlineData(10)]
     public void LazyMultithreaded(int threadCount)
@@ -613,7 +613,7 @@ public class AsyncTests
     }
 
 #pragma warning disable xUnit1031 //Test methods should not use blocking task operations, as they can cause deadlocks. Use an async test method and await instead.
-    [Fact]
+    [Fact(Timeout = TestTimeouts.Default)]
     public void AsyncPuzzler()
     {
         var text = SaySomething();
@@ -622,7 +622,7 @@ public class AsyncTests
     }
 #pragma warning restore xUnit1031
 
-    [Fact]
+    [Fact(Timeout = TestTimeouts.Default)]
     public void ReentrantLockTest()
     {
         var i = 0;
@@ -646,7 +646,7 @@ public class AsyncTests
         }
     }
 
-    [Fact]
+    [Fact(Timeout = TestTimeouts.Default)]
     public void MonitorWaitTest()
     {
         var sync = new object();
@@ -681,7 +681,7 @@ public class AsyncTests
         void Work() => Thread.Sleep(100);
     }
 
-    [Theory]
+    [Theory(Timeout = TestTimeouts.Default)]
     [InlineData(5, 5)]
     [InlineData(10, 10)]
     public void InterProcessMutex(int threadCount, int iterationCount)
@@ -711,7 +711,7 @@ public class AsyncTests
         Assert.Equal(threadCount * iterationCount, sum);
     }
 
-    [Fact]
+    [Fact(Timeout = TestTimeouts.Default)]
     public void MonotonicTimeVsTimeOfDayTime()
     {
         // Milliseconds that have elapsed since 1970-01-01T00:00:00.000Z (Unix epoch)
@@ -731,7 +731,7 @@ public class AsyncTests
         Why it's intermittent: the drift between QPC and the system timer varies with CPU load, power state changes (frequency scaling), and is worse in virtualized environments (where the hypervisor virtualizes both clocks independently). On a quiet machine it almost never triggers; under load or in CI it surfaces more often.
         The fix is to add a small tolerance that accounts for the inter-clock resolution gap. On Windows the system timer resolution is ~15.6ms
      */
-    [Fact]
+    [Fact(Timeout = TestTimeouts.Default)]
     public async Task StopWatchTest()
     {
         const int DelayInMillis = 1000;
