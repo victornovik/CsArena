@@ -22,8 +22,8 @@ env:
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-  # Minimum line coverage of the code under test (CsArena.Core); current level is about 84%.
-  MIN_LINE_COVERAGE: 80
+  # Minimum line coverage of the code under test (CsArena.Core); current level is about 94%.
+  MIN_LINE_COVERAGE: 90
 
 jobs:
   build-test:

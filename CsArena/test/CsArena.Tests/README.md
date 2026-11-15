@@ -51,10 +51,10 @@ dotnet test --solution CsArena.slnx --coverage --coverage-output-format cobertur
 # report: TestResults/<guid>.cobertura.xml
 
 # Markdown summary per file, and a failing exit code below the minimum line coverage
-python .github/scripts/coverage_summary.py TestResults --min-line 80
+python .github/scripts/coverage_summary.py TestResults --min-line 90
 ```
 
-Current level: about 84% of lines and 85% of branches. The skip-list collections (`SkipListCollection`, `SkipListDictionary`) are at 0%, because no test uses them yet. CI (`MIN_LINE_COVERAGE` in `.github/workflows/ci.yml`) fails when line coverage drops below 80%, writes the summary to the run page and uploads the Cobertura file as an artifact.
+Current level: about 94% of lines and 93% of branches (Release). CI (`MIN_LINE_COVERAGE` in `.github/workflows/ci.yml`) fails when line coverage drops below 90%, writes the summary to the run page and uploads the Cobertura file as an artifact.
 
 Why not `coverlet`: `coverlet.collector` is a VSTest data collector, which does nothing on Microsoft.Testing.Platform; `coverlet.MTP` ran but reported 0 lines here (before the code was moved; not retried afterwards). Neither tool reported anything for code inside the test assembly itself (the diagnostic log shows it skipped as an excluded path); once the code under test moved into its own project, both the Microsoft extension and the CI threshold worked, so that is the supported layout here.
 

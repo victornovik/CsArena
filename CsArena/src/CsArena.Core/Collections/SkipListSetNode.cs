@@ -8,7 +8,7 @@ internal class SkipListSetNode<T>
         Forward = new SkipListSetNode<T>[level + 1];
     }
 
-    public T Key { get; private set; }
+    public T Key { get; internal set; }
 
     public SkipListSetNode<T>[] Forward { get; private set; }
 }

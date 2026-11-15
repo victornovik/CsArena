@@ -28,7 +28,7 @@ public class SkipListDictionary<TKey, TValue>:IDictionary<TKey, TValue>
 
     public void Add(KeyValuePair<TKey, TValue> item)
     {
-        _set.Add(item);
+        Add(item.Key, item.Value);
     }
 
     public void Clear()
@@ -62,9 +62,18 @@ public class SkipListDictionary<TKey, TValue>:IDictionary<TKey, TValue>
         return node != null;
     }
 
+    // Matches Dictionary<TKey, TValue>: a null key throws ArgumentNullException, a duplicate key throws ArgumentException.
     public void Add(TKey key, TValue value)
     {
-        _set.Add(new KeyValuePair<TKey, TValue>(key, value));
+        if (key == null)
+        {
+            throw new ArgumentNullException(nameof(key));
+        }
+
+        if (!_set.TryAdd(new KeyValuePair<TKey, TValue>(key, value)))
+        {
+            throw new ArgumentException($"An item with the same key has already been added. Key: {key}", nameof(key));
+        }
     }
 
     public bool Remove(TKey key)
@@ -83,7 +92,7 @@ public class SkipListDictionary<TKey, TValue>:IDictionary<TKey, TValue>
         {
             if (key == null)
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(key));
             }
             var node = _set.FindNode(new KeyValuePair<TKey, TValue>(key, default!));
             if (node == null)
@@ -96,10 +105,20 @@ public class SkipListDictionary<TKey, TValue>:IDictionary<TKey, TValue>
         {
             if (key == null)
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(key));
             }
 
-            _set.Add(new KeyValuePair<TKey, TValue>(key, value));
+            // Matches Dictionary<TKey, TValue>: an existing key keeps its stored key object and gets the new value
+            // (in place, so the enumeration version does not change); a missing key is added.
+            var node = _set.FindNode(new KeyValuePair<TKey, TValue>(key, default!));
+            if (node != null)
+            {
+                node.Key = new KeyValuePair<TKey, TValue>(node.Key.Key, value);
+            }
+            else
+            {
+                _set.Add(new KeyValuePair<TKey, TValue>(key, value));
+            }
         }
     }
 

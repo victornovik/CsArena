@@ -44,6 +44,12 @@ public class SkipListCollection<T> : ICollection<T>
         Insert(item);
     }
 
+    // Like Add, but reports whether the item was inserted (false when an equal item is already present).
+    internal bool TryAdd(T item)
+    {
+        return Insert(item);
+    }
+
     public void Clear()
     {
         throw new NotImplementedException();
@@ -162,7 +168,7 @@ public class SkipListCollection<T> : ICollection<T>
         return null;
     }
 
-    private void Insert(T key)
+    private bool Insert(T key)
     {
         // TODO: May I can use the update list and assign it to new Node.Neightbours directly
         var updateList = new SkipListSetNode<T>[MaxLevel + 1];
@@ -178,7 +184,7 @@ public class SkipListCollection<T> : ICollection<T>
         node = node.Forward[0];
         if (node != _nil && _comparer.Compare(node.Key, key) == 0)
         {
-            return;
+            return false;
         }
 
         var newLevel = 0;
@@ -201,6 +207,7 @@ public class SkipListCollection<T> : ICollection<T>
         }
         _count++;
         _version++;
+        return true;
     }
 
     #region DebugString

@@ -8,6 +8,11 @@
     <UserSecretsId>acab85f1-6255-410f-a9ef-b94f35eff04b</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="collections\**" />
+    <EmbeddedResource Remove="collections\**" />
+    <None Remove="collections\**" />
+  </ItemGroup>
+  <ItemGroup>
     <None Remove="appsettings.json" />
   </ItemGroup>
   <ItemGroup>
@@ -38,8 +43,5 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\CsArena.Core\CsArena.Core.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="collections\" />
   </ItemGroup>
 </Project>
