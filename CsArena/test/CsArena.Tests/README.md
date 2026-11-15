@@ -6,18 +6,26 @@ Unit-test and exploration project for C# language features, BCL APIs, concurrenc
 
 ## Running tests
 
-```bash
-# All tests
-dotnet test
+xUnit v3 4.x runs on [Microsoft.Testing.Platform](https://aka.ms/testingplatform) (MTP). The root `global.json` opts `dotnet test` into MTP mode, which is required on the .NET 10+ SDK. The project is passed with `--project`, and the VSTest-style `--filter` expression is replaced by xUnit's own `--filter-*` options.
 
-# Verbose (show passed test names)
-dotnet test --logger "console;verbosity=normal"
+```bash
+# All tests (from the repo root)
+dotnet test --project CsArena/test/CsArena.Tests
+
+# Detailed output (show passed test names)
+dotnet test --project CsArena/test/CsArena.Tests --output Detailed
 
 # Single class
-dotnet test --filter "FullyQualifiedName~AsyncTests"
+dotnet test --project CsArena/test/CsArena.Tests --filter-class "CsArena.Tests.AsyncTests"
 
-# Single method
-dotnet test --filter "FullyQualifiedName=CsArena.Tests.AsyncTests.WhenEach"
+# Single method (wildcards allowed)
+dotnet test --project CsArena/test/CsArena.Tests --filter-method "*ExtensionIndexerTest"
+
+# By trait (e.g. skip the HTTP integration tests)
+dotnet test --project CsArena/test/CsArena.Tests --filter-not-trait "type=http"
+
+# List discovered tests without running them
+dotnet test --project CsArena/test/CsArena.Tests --list-tests
 ```
 
 ---
@@ -34,19 +42,19 @@ dotnet nuget why . SQLitePCLRaw.lib.e_sqlite3
 
 ---
 
----
-
 ## Stack
 
 | Concern | Package / Version |
 |---|---|
-| Test framework | `xunit.v3` 3.2.2 |
-| Parallel execution | `Meziantou.Xunit.v3.ParallelTestFramework` 1.0.6 |
-| VS / Rider runner | `xunit.runner.visualstudio` 3.1.5 |
+| Test framework | `xunit.v3` 4.0.3 (runs on Microsoft.Testing.Platform) |
+| Parallel execution | Native `[assembly: Parallelization(...)]` in `AssemblyInfo.cs` (replaces `Meziantou.Xunit.v3.ParallelTestFramework`, which does not support xunit 4) |
+| VS / Rider runner | `xunit.runner.visualstudio` 4.0.1 |
+| Test SDK | `Microsoft.NET.Test.Sdk` 18.6.0 |
 | Coverage | `coverlet.collector` 10.0.1 |
-| Configuration | `Microsoft.Extensions.Configuration.*` 10.0.9 |
+| Configuration | `Microsoft.Extensions.Configuration.*` 11.0.0 |
 | Target framework | `net11.0` |
-| Language | C# 14 |
+| Language | C# 15 (`LangVersion=latest`) |
+| Build settings | Root `Directory.Build.props`: `TreatWarningsAsErrors`, `Nullable`, `LangVersion` for all projects; the test project adds `NoWarn=NETSDK1233` in its own `Directory.Build.props` |
 
 ---
 
@@ -55,7 +63,8 @@ dotnet nuget why . SQLitePCLRaw.lib.e_sqlite3
 ```
 test/CsArena.Tests/
 │
-├── *Tests.cs                  # Feature tests (one file per topic)
+├── AssemblyInfo.cs            # Assembly-wide [Parallelization] setting
+├── *Tests.cs                  # Feature tests (one file per topic; CSharp14Tests, CSharp15Tests for language features)
 ├── CollectionUtil.cs          # Static test-data factory (countries, dicts)
 ├── HashHelpers.cs             # Hash / equality helpers shared across tests
 │
@@ -103,7 +112,13 @@ test/CsArena.Tests/
 
 ## Parallelism model
 
-`Meziantou.Xunit.v3.ParallelTestFramework` runs **every test method in parallel** across the whole assembly, including all `[InlineData]` cases of the same `[Theory]`. xUnit v3 creates a fresh class instance per test, so instance fields are safe. What is not safe:
+`AssemblyInfo.cs` sets:
+
+```csharp
+[assembly: Parallelization(Mode = ParallelMode.All, MaxThreads = -1)]
+```
+
+`ParallelMode.All` runs tests concurrently across classes **and** inside the same class (the xUnit default, `Collections`, only parallelizes across classes). `MaxThreads = -1` removes the thread cap. The old `[CollectionBehavior(DisableTestParallelization / MaxParallelThreads)]` properties are obsolete in xUnit 4 and fail the build. Keep `[Theory]` cases independent, since they can run concurrently as well. xUnit v3 creates a fresh class instance per test, so instance fields are safe. What is not safe:
 
 | Scope | Safe? | Notes |
 |---|---|---|
@@ -125,9 +140,8 @@ test/CsArena.Tests/
 
 3. **Dispose OS handles** with `using var` — leaked handles survive the test and can deadlock subsequent runs.
 
-4. **Use `System.Threading.Lock` for new sync primitives (C# 13/.NET 9).** Generates leaner code than `lock (object)`. Two cases where plain `object` is required instead:
-   - `Monitor.Wait` / `Monitor.Pulse` / `Monitor.PulseAll` — these APIs are incompatible with `Lock`
-   - Reentrant locking — `Lock` does not support reentrancy (deadlocks instead of re-entering)
+4. **Use `System.Threading.Lock` for new sync primitives (C# 13/.NET 9).** Generates leaner code than `lock (object)`, and it is reentrant (`AsyncTests.ReentrantLockTest` re-enters one). Plain `object` is required only for:
+   - `Monitor.Wait` / `Monitor.Pulse` / `Monitor.PulseAll` — these APIs do not work with `Lock` (see `AsyncTests.MonitorWaitTest`)
 
 5. **Spin-wait instead of `Thread.Sleep` to guarantee task completion before `await`.** Sleep introduces timer-resolution races under load:
    ```csharp
@@ -220,25 +234,29 @@ await foreach (var task in Task.WhenEach(t1, t2, t3))
     results.Add(await task);
 ```
 
-See `AsyncTests.WhenEach` for the live example.
-
 ---
 
-## C# 13 / 14 and .NET 9 / 10 features in use
+## C# 13–15 and .NET 9–11 features in use
 
 | Feature | Where |
 |---|---|
-| `System.Threading.Lock` | `AsyncTests.AttachedToParentTasks`, `AsyncTests.WaitOnAsyncVoid` |
+| `System.Threading.Lock` | `AsyncTests.AttachedToParentTasks`, `AsyncTests.WaitOnAsyncVoid`, `AsyncTests.ReentrantLockTest` |
 | `field` keyword (semi-auto property) | `CSharp14Tests.FieldKeywordTest` |
 | `params ReadOnlySpan<T>` | `CSharp14Tests.ParamsSpanTest` |
 | Extension blocks (`extension`) | `CSharp14Tests.ExtensionBlockTest`, `CSharp14Feature` |
 | Null-conditional assignment (`x?.Prop = v`) | `CSharp14Tests.NullConditionalAssignmentTest` |
-| `Task.WhenEach` (.NET 9) | `AsyncTests.WhenEach` |
 | `Enumerable.Index()` (.NET 9) | `LinqTests.IndexOperator` |
 | `Enumerable.CountBy()` (.NET 9) | `LinqTests.CountByKey` |
 | `Enumerable.AggregateBy()` (.NET 9) | `LinqTests.AggregateByKey` |
 | `OrderedDictionary<K,V>` (.NET 9) | `CollectionTests.OrderedDictionary` |
+| Union types (`union Shape(Circle, Rect, Triangle)`) | `CSharp15Tests.UnionTypeExhaustiveSwitchTest`, `UnionTypePatternMatchingTest` |
+| Closed hierarchies (`closed` class) | `CSharp15Tests.ClosedHierarchyExhaustiveSwitchTest` |
+| Extension indexers | `CSharp15Tests.ExtensionIndexerTest` |
+| Labeled `break` / `continue` | `CSharp15Tests.LabeledBreakTest`, `LabeledContinueTest` |
+| Collection expression arguments (`[with(...), ..x]`) | `CSharp15Tests.CollectionExpressionArgumentsTest` |
+| Static members on interfaces (older runtimes) | `CSharp15Tests.StaticInterfaceMemberTest` |
 
+Not available yet (checked on SDK 11.0.100): dictionary expressions (`["a": 1]`) — dictionary initializers stay as `{ ["a"] = 1 }`. The memory-safety preview needs `LangVersion=preview` and is not used.
 ---
 
 ## Output
@@ -396,7 +414,7 @@ dotnet user-secrets set "MySection:MyKey" "value" --id acab85f1-6255-410f-a9ef-b
 
 ## Skill
 
-`/unit-test-writer <topic>` — invokes `.claude/commands/unit-test-writer.md`. Scaffolds a complete, senior-level C# test with all parallelism rules, C# 14 feature preferences, and correct xUnit v3 conventions.
+`/unit-test-writer <topic>` — invokes `.claude/commands/unit-test-writer.md`. Scaffolds a complete, senior-level C# test with all parallelism rules, C# 15 feature preferences, and correct xUnit v3 (4.x) conventions.
 
 ---
 
@@ -407,7 +425,10 @@ dotnet user-secrets set "MySection:MyKey" "value" --id acab85f1-6255-410f-a9ef-b
 | `static` mutable field on test class | Intermittent cross-test pollution (`AsyncTests.result`, `HttpTests.TotalPageSizes` — both fixed) | Instance field |
 | Named OS mutex with a fixed string | Parallel theory cases deadlock or corrupt a shared counter (was `"UniqueMutexName"` — fixed) | `$"CsArena_{Guid.NewGuid():N}"` |
 | OS handle not disposed | Handle leak; runner hangs on repeated runs | `using var` |
-| `lock (new object())` for mutual exclusion | Correct but suboptimal; misses C# 13 `Lock` | `var sync = new Lock()` (except Monitor.Wait / reentrant) |
+| `lock (new object())` for mutual exclusion | Correct but suboptimal; misses C# 13 `Lock` | `var sync = new Lock()` (except when using `Monitor.Wait` / `Pulse`) |
+| `Meziantou.Xunit.v3.ParallelTestFramework` with xunit 4 | Runner crashes with "Sequence contains no elements" and runs no tests | Remove it; use `[assembly: Parallelization(Mode = ParallelMode.All)]` |
+| `dotnet test <path>` / `--filter` on the .NET 10+ SDK | "Testing with VSTest target is no longer supported" error | Use `dotnet test --project <path>` and `--filter-class` / `--filter-method` / `--filter-trait` |
+| `[CollectionBehavior(MaxParallelThreads = ...)]` | CS0619 (obsolete) in xUnit 4 | `[assembly: Parallelization(MaxThreads = ...)]` |
 | `Task.Delay(n).Wait()` in a sync event handler | Thread-pool pressure delays handler past a racing async continuation (was in `WaitOnAsyncVoid` — fixed) | `Thread.Sleep(n)` or remove |
 | `Thread.Sleep(n)` to guarantee task completion before `await` | Timer-resolution race under load (was in `ContinueAfterAwaitInTheSameThread` — fixed) | `while (!task.IsCompleted) Thread.Yield()` |
 | Fixed `await Task.Delay(n)` to wait for background tasks | Race when system is slow (was `await Task.Delay(500)` in `AttachedToParentTasks` — fixed) | `await Task.WhenAll(task1!, task2!)` |

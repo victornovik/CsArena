@@ -68,7 +68,7 @@ public class CSharp14Tests
             return "NullConditionalAssignment";
         }
 
-        // If book is null, the code doesn't call the assignment and RHS is not evaluated
+        // If book is null, the code doesn't call RHS part and RHS is not evaluated
         Book? book = null;
         book?.Name = Rhs();
         Assert.Null(book);

@@ -15,8 +15,9 @@ Given `$ARGUMENTS` — a topic, feature, algorithm, or scenario — write:
 
 | Item | Value |
 |---|---|
-| Framework | xUnit v3 (`xunit.v3` 3.2.2) |
-| Parallel | `Meziantou.Xunit.v3.ParallelTestFramework` — every test runs in parallel |
+| Framework | xUnit v3 (`xunit.v3` 4.0.3), Microsoft.Testing.Platform |
+| Parallel | `[assembly: Parallelization(Mode = ParallelMode.All, MaxThreads = -1)]` in `AssemblyInfo.cs` — tests run in parallel across and within classes |
+| Run | `dotnet test --project CsArena/test/CsArena.Tests [--filter-class X] [--filter-method Y]` |
 | Runtime | `net11.0`, C# 15, nullable enabled |
 | Global using | `using Xunit;` is implicit — **never add it explicitly** |
 | Test namespaces | `CsArena.Tests` (root) · `CsArena.Tests.LeetCode` (algorithms) |
@@ -25,7 +26,7 @@ Given `$ARGUMENTS` — a topic, feature, algorithm, or scenario — write:
 
 ## Parallelism rules — CRITICAL
 
-Every test method runs concurrently with all others in the same AppDomain, including multiple `[InlineData]` cases of the same `[Theory]`.
+Test methods run concurrently with each other, within a class and across classes; assume `[InlineData]` cases of the same `[Theory]` can also overlap.
 
 | Situation | Rule |
 |---|---|
@@ -33,12 +34,13 @@ Every test method runs concurrently with all others in the same AppDomain, inclu
 | Named OS resource (Mutex, Semaphore, Pipe) | Append a GUID: `$"CsArena_{Guid.NewGuid():N}"` + `using var` |
 | Sync primitive for mutual exclusion | Use `System.Threading.Lock` (C# 13) — not `object` |
 | `Monitor.Wait` / `Monitor.Pulse` | Must use plain `object` — `Lock` is incompatible |
-| Reentrant lock | Must use plain `object` — `Lock` does not support reentrancy |
+| Reentrant lock | `Lock` is reentrant — it is fine to use |
+| GC / timing-sensitive asserts (`GC.GetGeneration`, elapsed time) | Sensitive to other tests allocating in parallel — keep assertions tolerant |
 | Diagnostic output | `ITestOutputHelper` injected via constructor — never `Console.Write` |
 
 ---
 
-## Language and API preferences (C# 13/14, .NET 9/10)
+## Language and API preferences (C# 13–15, .NET 9–11)
 
 Use modern features where they fit naturally — don't force them:
 
@@ -54,6 +56,13 @@ Use modern features where they fit naturally — don't force them:
 | `params ReadOnlySpan<T>` | Variadic helpers with zero heap pressure |
 | `field` keyword | Semi-auto properties with validation in one accessor |
 | `extension` block | Extending numeric or domain types |
+| `extension` indexer (C# 15) | Indexing into an existing type from an extension block (named receiver required) |
+| `union` types (C# 15) | A value that is exactly one of several case types; switch without a default arm |
+| `closed` class (C# 15) | Fixed set of derived types in the same assembly; exhaustive switch |
+| Labeled `break` / `continue` (C# 15) | Leaving nested loops without a flag or `goto` |
+| `[with(...), ..items]` (C# 15) | Passing capacity or a comparer to the collection built by a collection expression |
+
+Not available on the current SDK: dictionary expressions (`["k": v]`) — keep `{ ["k"] = v }` initializers. Union and closed types used in a non-`file` member signature must be `internal` or `public`, not `file`.
 
 ---
 
