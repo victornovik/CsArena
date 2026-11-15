@@ -5,7 +5,7 @@ namespace CsArena.Tests;
 
 /// <summary>
 /// Category names used with <see cref="CategoryAttribute"/>. Select them with
-/// <c>dotnet test --filter-trait "category=gc"</c> or exclude them with <c>--filter-not-trait "category=slow"</c>.
+/// <c>dotnet test --filter-trait "category=gc"</c> or exclude them with <c>--filter-not-trait "category=concurrency"</c>.
 /// </summary>
 public static class TestCategories
 {
@@ -20,7 +20,7 @@ public static class TestCategories
     /// <summary>Threads, tasks, locks and OS primitives; carries a per-test timeout.</summary>
     public const string Concurrency = "concurrency";
 
-    /// <summary>Takes roughly 300 ms or more on a developer machine.</summary>
+    /// <summary>Takes roughly 300 ms or more on a developer machine. Reserved: no test needs it today.</summary>
     public const string Slow = "slow";
 
     /// <summary>Algorithm tests for the solutions in CsArena.Core.LeetCode.</summary>

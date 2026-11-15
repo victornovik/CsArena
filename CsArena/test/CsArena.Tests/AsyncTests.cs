@@ -79,33 +79,35 @@ public class AsyncTests
     }
 
     [Fact(Timeout = TestTimeouts.Default)]
-    [Category(TestCategories.Slow)]
     public async Task AttachedToParentTasks()
     {
         var sync = new Lock();
         string res = "";
         Task? task1 = null, task2 = null;
+        // Task1 and Task2 are detached: they must not finish before the outer task. Instead of sleeping 200/300 ms and
+        // hoping the outer task is faster, they wait for this gate, which is opened once the outer task is recorded.
+        using var detachedGate = new ManualResetEventSlim(false);
 
         // Outer task will not complete until inner attached tasks complete, i.e. inner task Task3 must complete before the outer task.
         await Task.Factory.StartNew(() =>
         {
             task1 = Task.Factory.StartNew(() =>
             {
-                Thread.Sleep(200);
+                detachedGate.Wait(TestContext.Current.CancellationToken);
                 lock (sync)
                     res += "-Task1Done";
             });
 
             task2 = Task.Factory.StartNew(() =>
             {
-                Thread.Sleep(300);
+                detachedGate.Wait(TestContext.Current.CancellationToken);
                 lock (sync)
                     res += "-Task2Done";
             }, TaskCreationOptions.LongRunning);
 
             Task.Factory.StartNew(() =>
             {
-                Thread.Sleep(100);
+                Thread.Sleep(20);   // still running when the outer body returns, so the outer task has to wait for it
                 lock (sync)
                     res += "Task3Done";
             }, TaskCreationOptions.AttachedToParent);
@@ -113,6 +115,7 @@ public class AsyncTests
 
         lock (sync)
             res += "-OuterTaskDone";
+        detachedGate.Set();
 
         // WhenAll instead of a fixed delay: deterministic regardless of system load.
         await Task.WhenAll(task1!, task2!);
@@ -361,7 +364,6 @@ public class AsyncTests
     [Theory(Timeout = TestTimeouts.Default)]
     [InlineData(10)]
     [InlineData(100)]
-    [Category(TestCategories.Slow)]
     public async Task ConcurrentBag(int size)
     {
         var bag = new ConcurrentBag<int>();
@@ -376,16 +378,21 @@ public class AsyncTests
 
         int actualElementsInBag = 0;
 
-        List<Task> consumers = [];
+        // One consumer per item, in rounds until the bag is empty (a TryTake that loses a race takes nothing, so a
+        // second round is possible). Spawning consumers in a tight loop while IsEmpty is false created thousands of tasks.
         while (!bag.IsEmpty)
         {
-            consumers.Add(Task.Run(() =>
+            List<Task> consumers = [];
+            for (var i = 0; i < size; i++)
             {
-                if (bag.TryTake(out _))
-                    Interlocked.Increment(ref actualElementsInBag);
-            }, TestContext.Current.CancellationToken));
+                consumers.Add(Task.Run(() =>
+                {
+                    if (bag.TryTake(out _))
+                        Interlocked.Increment(ref actualElementsInBag);
+                }, TestContext.Current.CancellationToken));
+            }
+            await Task.WhenAll(consumers);
         }
-        await Task.WhenAll(consumers);
 
         Assert.Equal(size, actualElementsInBag);
         Assert.Empty(bag);
@@ -459,7 +466,6 @@ public class AsyncTests
     }
 
     [Fact(Timeout = TestTimeouts.Default)]
-    [Category(TestCategories.Slow)]
     public void ThreadLocal()
     {
         ThreadLocal<decimal> threadLocal = new(trackAllValues: true);
@@ -474,7 +480,9 @@ public class AsyncTests
 
         static decimal Compute(int value)
         {
-            Thread.Sleep(1 + value % 4); // deterministic 1-4 ms jitter to vary thread interleaving
+            // Deterministic, uneven busy work (a few microseconds) so the iterations overlap on several threads;
+            // sleeping 1-4 ms per iteration made the test take about 300 ms for no extra coverage.
+            Thread.SpinWait(500 * (1 + value % 4));
             return value + 0.5m;
         }
     }
@@ -609,21 +617,29 @@ public class AsyncTests
 
     private string? result;
 
-    async Task<string> SaySomething()
+    // Suspends at the await until the gate is opened, like a long-running I/O call, without waiting on a timer.
+    async Task<string> SaySomething(Task gate)
     {
-        await Task.Delay(500, TestContext.Current.CancellationToken);
+        await gate;
         result = "Hello world";
         return "Something";
     }
 
 #pragma warning disable xUnit1031 //Test methods should not use blocking task operations, as they can cause deadlocks. Use an async test method and await instead.
     [Fact(Timeout = TestTimeouts.Default)]
-    [Category(TestCategories.Slow)]
     public void AsyncPuzzler()
     {
-        var text = SaySomething();
+        var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        var text = SaySomething(gate.Task);
+        // The method has returned at its first await: the task is incomplete and the code after the await has not run
+        Assert.False(text.IsCompleted);
         Assert.Null(result);
+
+        // Open the gate from another thread, then block on .Result (the sync-over-async call this puzzler is about)
+        _ = Task.Run(() => gate.SetResult(), TestContext.Current.CancellationToken);
         Assert.Equal("Something", text.Result);
+        Assert.Equal("Hello world", result);
     }
 #pragma warning restore xUnit1031
 
@@ -730,6 +746,7 @@ public class AsyncTests
 
     /*
         Stopwatch uses QueryPerformanceCounter (QPC) — a high-resolution hardware counter. Task.Delay uses System.Threading.Timer, which is driven by the system clock (a completely separate counter). These two clocks track real time independently and can drift slightly relative to each other.
+        (The numbers below use a 1000 ms delay as the example; the test waits 100 ms, which shows the same effect: the shortfall comes from clock resolution, not from the length of the wait.)
         So even though the system timer fires "at or after 1000ms" from its own perspective, QPC may have advanced only 999.7ms by that point. Then ElapsedMilliseconds truncates (integer division, not rounding):
         999.7ms → ElapsedMilliseconds = 999   // fails the assertion
         The truncation is the second blow. Even a 0.1ms shortfall produces a value of 999.
@@ -737,10 +754,9 @@ public class AsyncTests
         The fix is to add a small tolerance that accounts for the inter-clock resolution gap. On Windows the system timer resolution is ~15.6ms
      */
     [Fact(Timeout = TestTimeouts.Default)]
-    [Category(TestCategories.Slow)]
     public async Task StopWatchTest()
     {
-        const int DelayInMillis = 1000;
+        const int DelayInMillis = 100;
 
         var sw = new Stopwatch();
         sw.Start();

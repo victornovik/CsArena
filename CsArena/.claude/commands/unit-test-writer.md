@@ -159,7 +159,7 @@ Pick the mechanism by the reason, not by habit:
 |---|---|
 | Reaches an external URL | `[NetworkFact]` — skipped unless `CSARENA_NETWORK_TESTS=1`, tagged `category=network`. Never a hard-coded `Skip`. |
 | Cannot run on one OS or in one environment | `Assert.SkipUnless(condition, "reason")` / `Assert.SkipWhen(...)` as the first statement of the test (runtime skip with a visible reason), or `[Fact(Skip = "reason", SkipUnless = nameof(Prop), SkipType = typeof(Env))]` for a reusable condition. |
-| Slow (about 300 ms or more) | Not a skip: add `[Category(TestCategories.Slow)]` so it can be left out with `--filter-not-trait "category=slow"`. |
+| Slow (about 300 ms or more) | Not a skip. First make it fast: use a gate (`TaskCompletionSource`, `ManualResetEventSlim`) instead of a sleep or `Task.Delay`, and bound loops that spawn tasks. If it genuinely cannot be fast, add `[Category(TestCategories.Slow)]` so it can be left out with `--filter-not-trait "category=slow"`. No test is tagged `slow` today. |
 | Asserts on garbage-collector state | Put it in `GcTests` (the non-parallel `gc` collection, `[Category(TestCategories.Gc)]`). |
 | Threads, locks, OS primitives | `[Category(TestCategories.Concurrency)]` and `Timeout = TestTimeouts.Default`. |
 | LeetCode solution test | `[Category(TestCategories.LeetCode)]` on the test class. |

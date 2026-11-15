@@ -21,9 +21,9 @@ dotnet test --project CsArena/test/CsArena.Tests --filter-class "CsArena.Tests.A
 # Single method (wildcards allowed)
 dotnet test --project CsArena/test/CsArena.Tests --filter-method "*ExtensionIndexerTest"
 
-# By category (see "Test categories"): only GC tests, or everything except the slow ones
+# By category (see "Test categories"): only GC tests, or everything except the concurrency ones
 dotnet test --project CsArena/test/CsArena.Tests --filter-trait "category=gc"
-dotnet test --project CsArena/test/CsArena.Tests --filter-not-trait "category=slow"
+dotnet test --project CsArena/test/CsArena.Tests --filter-not-trait "category=concurrency"
 
 # List discovered tests without running them
 dotnet test --project CsArena/test/CsArena.Tests --list-tests
@@ -57,6 +57,22 @@ Parallelism is configured in one place only: `[assembly: Parallelization(...)]` 
 xUnit analyzer rule xUnit1069 asks every test with a `Timeout` to reference `TestContext.Current.CancellationToken`. `AsyncTests` blocks on threads, locks and OS mutexes that cannot observe a token, so `.editorconfig` lowers that rule to a suggestion for that one file; elsewhere, pass the token to the calls that accept it.
 
 Locally, the same flags work on any run, for example `dotnet test --solution CsArena.slnx --timeout 5m --show-slowest-tests 5`.
+
+---
+
+## Keeping tests fast
+
+The slowest test in the suite takes about 150 ms. The six tests that used to be tagged `slow` (0.2 to 1 s each) were sped up without changing what they check:
+
+| Test | Was | Now |
+|---|---|---|
+| `ConcurrentBag` (2 rows) | `while (!bag.IsEmpty)` spawned a consumer task per spin: 4,115 tasks for 10 items on the first run | One consumer per item, in rounds until the bag is empty (normally one round) |
+| `ThreadLocal` | `Thread.Sleep(1..4 ms)` in each of 100 iterations (about 180 to 300 ms) | Deterministic `Thread.SpinWait` work: the iterations still overlap on 5 to 11 threads, in about 10 ms |
+| `AsyncPuzzler` | `Task.Delay(500)` | The async method awaits a gate (`TaskCompletionSource`) that the test opens from another thread; it also asserts that the task is incomplete and, after `.Result`, that `result` was set |
+| `AttachedToParentTasks` | Sleeps of 100/200/300 ms so the outer task finished "first" | The detached tasks wait for a gate that is opened once the outer task is recorded, so the order no longer depends on timing; the attached task sleeps 20 ms |
+| `StopWatchTest` | 1000 ms real delay | 100 ms real delay: it measures real clocks, so it cannot be faked, and the 15 ms clock-resolution tolerance does not depend on the delay length |
+
+Prefer a gate (`TaskCompletionSource`, `ManualResetEventSlim`) over a sleep or `Task.Delay` whenever a test only needs "not finished yet": it is faster and cannot flake on a slow machine. Use a real delay only when the real clock is the thing under test.
 
 ---
 
@@ -100,10 +116,10 @@ dotnet test --solution CsArena.slnx -c Release
 
 WSL points `XDG_RUNTIME_DIR` at `/mnt/wslg/runtime-dir`, whose owner .NET rejects. Named mutexes (used by `AsyncTests.InterProcessMutex`) and the SDK's first-run setup then fail with `The directory '/mnt/wslg/runtime-dir' does not have the expected owner or permissions`. A private directory fixes it; plain Linux hosts and GitHub runners are not affected.
 
-Categories (see "Test categories") behave the same on both platforms, so they are the way to run a subset in either place, for example a quick loop without the slow tests, or only the GC tests:
+Categories (see "Test categories") behave the same on both platforms, so they are the way to run a subset in either place, for example a quick loop without the concurrency tests, or only the GC tests:
 
 ```bash
-dotnet test --solution CsArena.slnx --filter-not-trait "category=slow"
+dotnet test --solution CsArena.slnx --filter-not-trait "category=concurrency"
 dotnet test --solution CsArena.slnx --filter-trait "category=gc"
 ```
 
@@ -300,22 +316,22 @@ Only for genuinely non-deterministic scheduler-dependent behaviour, after all de
 | `network` | `[NetworkFact]` tests in `HttpTests` | 3 |
 | `gc` | `GcTests` (runs alone, non-parallel collection) | 3 |
 | `concurrency` | `AsyncTests` (all carry a per-test timeout) | 31 |
-| `slow` | tests of about 300 ms or more: `StopWatchTest`, `AsyncPuzzler`, `AttachedToParentTasks`, `ThreadLocal`, `ConcurrentBag` | 6 |
+| `slow` | reserved for tests of about 300 ms or more; none today (the six that used to qualify were made fast, see "Keeping tests fast") | 0 |
 | `leetcode` | every `LeetCode/*Tests` class | 144 |
 | `language` | C# language features: `AnonymousTypeTests`, `AttributeTests`, `CSharp14Tests`, `CSharp15Tests`, `DelegateTests`, `ExceptionTests`, `GenericTests`, `IteratorBlockTests`, `LanguageTests`, `NullTests`, `PatternMatchingTests`, `RecordTests`, `TupleTests`, `TypeTests` | 125 |
 | `collections` | `CollectionTests`, `SkipListCollectionTests`, `SkipListDictionaryTests` | 81 |
 | `linq` | `LinqTests` | 22 |
 | `bcl` | base class library APIs: `ConfigurationTests`, `MathTests`, `MemoryTests`, `ReflectionTests`, `TestCategoriesTests` | 34 |
 
-Every test has at least one category, and `TestCategoriesTests` fails with the list of offenders when a new test or class has none (it also checks that only the categories in `TestCategories` are used). Counts include theory rows. A test can have several categories (`ThreadLocal` is both `concurrency` and `slow`), so the counts add up to more than the 443 tests. Durations come from `--show-slowest-tests` on a developer machine, so treat `slow` as a rough label: re-check it when a test's timing changes.
+Every test has at least one category, and `TestCategoriesTests` fails with the list of offenders when a new test or class has none (it also checks that only the categories in `TestCategories` are used). Counts include theory rows. A test can have several categories, but none has more than one today, so the counts add up to the 443 tests. Check durations with `--show-slowest-tests`; the slowest tests are about 150 ms, well under the 300 ms that would earn the `slow` tag.
 
 ### Categories in Visual Studio Test Explorer
 
 The categories reach Test Explorer (checked in Visual Studio 2026), but the **Traits column cells stay blank** for these tests, so use one of the other views, which all read the same trait data:
 
-- **Header filter:** the funnel icon in the Traits column header lists `category [gc]`, `category [slow]`, ... and filters the list when ticked.
+- **Header filter:** the funnel icon in the Traits column header lists `category [gc]`, `category [leetcode]`, ... and filters the list when ticked.
 - **Group By:** the toolbar's Group By, then **Traits**, gives one group per category plus a "No Traits" group for tests without one.
-- **Search box:** `Trait:gc` or `Trait:slow` filters by a trait value.
+- **Search box:** `Trait:gc` or `Trait:leetcode` filters by a trait value.
 
 The blank cell is a display quirk on the Visual Studio side, not a missing trait: the test host reports `category=...` for every tagged test, both through the new test platform and through the VSTest adapter, and the command-line `--filter-trait "category=..."` works. If a category never appears in the filter popup, rebuild and refresh Test Explorer (delete `.vs` if the old test list is cached).
 

@@ -15,6 +15,10 @@ public class TestCategoriesTests
         TestCategories.Bcl,
     ];
 
+    // Defined for future use; no test needs them today. Slow is for tests of about 300 ms or more, and the tests that
+    // used to qualify were made fast (gates instead of sleeps, bounded loops) instead of being tagged.
+    private static readonly string[] ReservedCategories = [TestCategories.Slow];
+
     private static IEnumerable<string> CategoriesOf(MemberInfo member) =>
         member.GetCustomAttributes(inherit: true)
             .OfType<ITraitAttribute>()
@@ -51,7 +55,7 @@ public class TestCategoriesTests
             .ToList();
 
         Assert.Empty(used.Except(KnownCategories));
-        // Every known category is used by at least one test
-        Assert.Empty(KnownCategories.Except(used));
+        // Every known category is used by at least one test, unless it is reserved
+        Assert.Empty(KnownCategories.Except(used).Except(ReservedCategories));
     }
 }
