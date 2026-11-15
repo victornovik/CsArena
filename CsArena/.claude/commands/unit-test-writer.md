@@ -151,13 +151,23 @@ public void DescriptiveName(int threadCount)
 
 ---
 
-## Skip policy
+## Skip policy and categories
 
-Tests that reach an external URL use `[NetworkFact]` (skipped unless `CSARENA_NETWORK_TESTS=1`, tagged `category=network`) — not a hard-coded `Skip`.
+Pick the mechanism by the reason, not by habit:
 
-Add `[Category(TestCategories.X)]` (`Network`, `Gc`, `Concurrency`, `Slow`, `LeetCode`) to tests or classes of those kinds, so they can be selected with `--filter-trait "category=x"`: GC-state assertions go in `GcTests` (the non-parallel `gc` collection); a test taking about 300 ms or more is `Slow`.
+| Situation | Use |
+|---|---|
+| Reaches an external URL | `[NetworkFact]` — skipped unless `CSARENA_NETWORK_TESTS=1`, tagged `category=network`. Never a hard-coded `Skip`. |
+| Cannot run on one OS or in one environment | `Assert.SkipUnless(condition, "reason")` / `Assert.SkipWhen(...)` as the first statement of the test (runtime skip with a visible reason), or `[Fact(Skip = "reason", SkipUnless = nameof(Prop), SkipType = typeof(Env))]` for a reusable condition. |
+| Slow (about 300 ms or more) | Not a skip: add `[Category(TestCategories.Slow)]` so it can be left out with `--filter-not-trait "category=slow"`. |
+| Asserts on garbage-collector state | Put it in `GcTests` (the non-parallel `gc` collection, `[Category(TestCategories.Gc)]`). |
+| Threads, locks, OS primitives | `[Category(TestCategories.Concurrency)]` and `Timeout = TestTimeouts.Default`. |
+| LeetCode solution test | `[Category(TestCategories.LeetCode)]` on the test class. |
+| Genuinely non-deterministic (scheduler-dependent) after every fix below has been tried | `[Fact(Skip = "reason")]` — the last resort. |
 
-`[Fact(Skip = "reason")]` is only for tests that are **genuinely** non-deterministic (scheduler-dependent) — first try to eliminate the non-determinism:
+Categories are `Network`, `Gc`, `Concurrency`, `Slow` and `LeetCode` in `TestCategories`; apply them with `[Category(TestCategories.X)]` on a class or a method (a test can have several). They become `category` traits, selected with `--filter-trait "category=x"` and excluded with `--filter-not-trait "category=x"`. Visual Studio's Traits column cells stay blank for them; use its header filter, Group By Traits or the `Trait:x` search instead (see the README).
+
+Before using `Skip` for flakiness, try to eliminate the non-determinism:
   - Replace fixed `Thread.Sleep` delays with `while (!task.IsCompleted) Thread.Yield()`
   - Replace `Task.Delay(n).Wait()` (thread-pool pressure) with `Thread.Sleep(n)`
   - Replace fixed polling timeouts with `await Task.WhenAll(...)`

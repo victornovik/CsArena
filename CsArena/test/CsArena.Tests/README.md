@@ -80,7 +80,7 @@ Why not `coverlet`: `coverlet.collector` is a VSTest data collector, which does 
 
 ## Platforms and CI
 
-The suite is expected to pass on **Windows and Linux**. Last verified: Windows 10, and Ubuntu on WSL 2 with SDK 11.0.100 (386 passed, 3 skipped, repeated runs stable).
+The suite is expected to pass on **Windows and Linux**. Last verified: Windows 10, and Ubuntu on WSL 2 with SDK 11.0.100 (438 passed, 3 skipped, repeated runs stable). The 3 skipped tests are the opt-in `[NetworkFact]` tests (`category=network`): CI does not set `CSARENA_NETWORK_TESTS`, so they are skipped on both operating systems.
 
 `.github/workflows/ci.yml` runs on pushes and pull requests to `main`, daily at 12:10 MSK (09:10 UTC; GitHub cron is UTC and Moscow has no DST), and on demand (`workflow_dispatch`):
 
@@ -100,9 +100,19 @@ dotnet test --solution CsArena.slnx -c Release
 
 WSL points `XDG_RUNTIME_DIR` at `/mnt/wslg/runtime-dir`, whose owner .NET rejects. Named mutexes (used by `AsyncTests.InterProcessMutex`) and the SDK's first-run setup then fail with `The directory '/mnt/wslg/runtime-dir' does not have the expected owner or permissions`. A private directory fixes it; plain Linux hosts and GitHub runners are not affected.
 
+Categories (see "Test categories") behave the same on both platforms, so they are the way to run a subset in either place, for example a quick loop without the slow tests, or only the GC tests:
+
+```bash
+dotnet test --solution CsArena.slnx --filter-not-trait "category=slow"
+dotnet test --solution CsArena.slnx --filter-trait "category=gc"
+```
+
+CI always runs the full suite (nothing is filtered out except the network tests, which skip themselves). To run the network tests on a machine that has internet access, set `CSARENA_NETWORK_TESTS=1` (see `[NetworkFact]`).
+
 Platform notes for new tests:
 - Don't depend on the OS line break or on the source file's line endings. Source files are LF everywhere (`.gitattributes`, `.editorconfig`); pin output instead, e.g. `JsonSerializerOptions.NewLine = "\n"` in `RecordTests.SerializeRecord`.
 - Use forward-compatible paths (`Path.Combine`), and remember Linux file systems are case-sensitive.
+- A test that genuinely cannot run on one platform should skip itself at run time with a reason, not be removed or tagged away: `Assert.SkipUnless(OperatingSystem.IsWindows(), "uses a Windows-only API");` (or `Assert.SkipWhen(...)`) as the first line of the test. The skip then shows in the run summary with its reason on the other platform.
 
 ---
 
@@ -293,6 +303,16 @@ Only for genuinely non-deterministic scheduler-dependent behaviour, after all de
 | `leetcode` | every `LeetCode/*Tests` class | 144 |
 
 Counts include theory rows. A test can have several categories (`ThreadLocal` is both `concurrency` and `slow`). Durations come from `--show-slowest-tests` on a developer machine, so treat `slow` as a rough label: re-check it when a test's timing changes.
+
+### Categories in Visual Studio Test Explorer
+
+The categories reach Test Explorer (checked in Visual Studio 2026), but the **Traits column cells stay blank** for these tests, so use one of the other views, which all read the same trait data:
+
+- **Header filter:** the funnel icon in the Traits column header lists `category [gc]`, `category [slow]`, ... and filters the list when ticked.
+- **Group By:** the toolbar's Group By, then **Traits**, gives one group per category plus a "No Traits" group for tests without one.
+- **Search box:** `Trait:gc` or `Trait:slow` filters by a trait value.
+
+The blank cell is a display quirk on the Visual Studio side, not a missing trait: the test host reports `category=...` for every tagged test, both through the new test platform and through the VSTest adapter, and the command-line `--filter-trait "category=..."` works. If a category never appears in the filter popup, rebuild and refresh Test Explorer (delete `.vs` if the old test list is cached).
 
 ---
 
