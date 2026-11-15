@@ -3,6 +3,16 @@ using CsArena.Tests.models;
 
 namespace CsArena.Tests;
 
+// GC.Collect / GC.GetGeneration assertions are global to the process: any test allocating or collecting
+// at the same time can promote or collect objects under test. This collection runs alone, with no other
+// test executing concurrently (see [assembly: Parallelization] in AssemblyInfo.cs).
+[CollectionDefinition(Name, DisableParallelization = true)]
+public static class GcCollection
+{
+    public const string Name = "gc";
+}
+
+[Collection(GcCollection.Name)]
 public class GcTests
 {
     internal class JsonProcessor : IDisposable
