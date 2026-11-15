@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using CsArena.Tests.extensions;
-using CsArena.Tests.models;
+using CsArena.Core.Extensions;
+using CsArena.Core.Models;
 
 namespace CsArena.Tests;
 

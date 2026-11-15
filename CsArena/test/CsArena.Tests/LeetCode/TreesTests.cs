@@ -1,6 +1,8 @@
 ﻿namespace CsArena.Tests.LeetCode;
 
-using static Trees;
+using CsArena.Core.LeetCode;
+
+using static CsArena.Core.LeetCode.Trees;
 
 public class TreesTests
 {

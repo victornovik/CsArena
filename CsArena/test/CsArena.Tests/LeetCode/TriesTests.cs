@@ -1,5 +1,7 @@
 ﻿namespace CsArena.Tests.LeetCode;
 
+using CsArena.Core.LeetCode;
+
 public class TriesTests
 {
     [Fact]

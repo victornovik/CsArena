@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
 using System.Text;
-using CsArena.Tests.models;
+using CsArena.Core.Models;
 using Microsoft.CSharp.RuntimeBinder;
 
 namespace CsArena.Tests;

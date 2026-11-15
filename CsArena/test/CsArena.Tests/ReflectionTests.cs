@@ -1,5 +1,5 @@
 ﻿using System.Reflection;
-using CsArena.Tests.models;
+using CsArena.Core.Models;
 // ReSharper disable UnusedTypeParameter
 
 namespace CsArena.Tests;

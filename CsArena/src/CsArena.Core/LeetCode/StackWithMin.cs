@@ -1,4 +1,4 @@
-﻿namespace CsArena.Tests.LeetCode;
+﻿namespace CsArena.Core.LeetCode;
 
 /**
     Design a stack that supports push, pop, top, and retrieving the minimum element in constant time.

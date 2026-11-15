@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace CsArena.Tests.models;
+namespace CsArena.Core.Models;
 
 public class Car
 {

@@ -1,4 +1,4 @@
-﻿namespace CsArena.Tests.models;
+﻿namespace CsArena.Core.Models;
 
 public record Country(string Name, string Code, string Region, int Population)
 {

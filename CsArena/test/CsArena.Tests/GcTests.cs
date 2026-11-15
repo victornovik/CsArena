@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using CsArena.Tests.models;
+using CsArena.Core.Models;
 
 namespace CsArena.Tests;
 

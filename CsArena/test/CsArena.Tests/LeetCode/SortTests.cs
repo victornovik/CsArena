@@ -1,6 +1,6 @@
 ﻿namespace CsArena.Tests.LeetCode;
 
-using static Sort;
+using static CsArena.Core.LeetCode.Sort;
 
 public class SortTests
 {

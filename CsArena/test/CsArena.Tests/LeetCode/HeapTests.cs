@@ -1,6 +1,8 @@
 ﻿namespace CsArena.Tests.LeetCode;
 
-using static Heap;
+using CsArena.Core.LeetCode;
+
+using static CsArena.Core.LeetCode.Heap;
 
 public class HeapTests
 {

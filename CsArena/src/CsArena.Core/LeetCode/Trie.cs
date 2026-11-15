@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace CsArena.Tests.LeetCode;
+namespace CsArena.Core.LeetCode;
 
 /**
     A trie (https://en.wikipedia.org/wiki/Trie) or prefix tree is a tree data structure used to efficiently store and retrieve keys in a dataset of strings.

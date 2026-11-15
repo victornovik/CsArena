@@ -22,6 +22,8 @@ env:
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  # Minimum line coverage of the code under test (CsArena.Core); current level is about 84%.
+  MIN_LINE_COVERAGE: 80
 
 jobs:
   build-test:
@@ -48,8 +50,21 @@ jobs:
         run: dotnet build CsArena.slnx --configuration Release --no-restore
 
       # global.json selects Microsoft.Testing.Platform, hence --solution instead of a positional path.
+      # Coverage comes from Microsoft.Testing.Extensions.CodeCoverage (referenced by CsArena.Tests).
       - name: Test
-        run: dotnet test --solution CsArena.slnx --configuration Release --no-build
+        run: dotnet test --solution CsArena.slnx --configuration Release --no-build --coverage --coverage-output-format cobertura
+
+      - name: Coverage summary and threshold
+        shell: bash
+        run: python .github/scripts/coverage_summary.py TestResults --min-line "$MIN_LINE_COVERAGE" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.os }}
+          path: TestResults/**/*.cobertura.xml
+          if-no-files-found: warn
 
   vulnerability-scan:
     name: Vulnerable packages

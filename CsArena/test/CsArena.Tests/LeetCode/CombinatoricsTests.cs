@@ -1,6 +1,6 @@
 ﻿namespace CsArena.Tests.LeetCode;
 
-using static Combinatorics;
+using static CsArena.Core.LeetCode.Combinatorics;
 
 public class CombinatoricsTests
 {

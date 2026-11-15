@@ -1,6 +1,6 @@
 ﻿namespace CsArena.Tests.LeetCode;
 
-using static Intervals;
+using static CsArena.Core.LeetCode.Intervals;
 
 public class IntervalsTests
 {

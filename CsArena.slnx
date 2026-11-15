@@ -4,6 +4,7 @@
   </Folder>
   <Project Path="CollectionArena/CollectionArena.csproj" />
   <Project Path="CsArena/src/CsArena/CsArena.csproj" />
+  <Project Path="CsArena/src/CsArena.Core/CsArena.Core.csproj" />
   <Project Path="CsArena/test/CsArena.Tests/CsArena.Tests.csproj" />
   <Project Path="LinqArena/LinqArena.csproj" />
 </Solution>

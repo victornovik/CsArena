@@ -1,6 +1,6 @@
 ﻿namespace CsArena.Tests.LeetCode;
 
-using static Bits;
+using static CsArena.Core.LeetCode.Bits;
 
 public class BitsTests
 {

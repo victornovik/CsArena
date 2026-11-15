@@ -1,6 +1,6 @@
 ﻿namespace CsArena.Tests.LeetCode;
 
-using static Strings;
+using static CsArena.Core.LeetCode.Strings;
 
 public class StringsTests
 {

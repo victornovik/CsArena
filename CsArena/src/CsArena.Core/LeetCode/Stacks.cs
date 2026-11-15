@@ -1,6 +1,6 @@
 ﻿using System.Collections.Frozen;
 
-namespace CsArena.Tests.LeetCode;
+namespace CsArena.Core.LeetCode;
 
 public static class Stacks
 {

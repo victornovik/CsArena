@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace CsArena.Tests.LeetCode;
+namespace CsArena.Core.LeetCode;
 
 public static class Strings
 {

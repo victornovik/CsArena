@@ -1,6 +1,6 @@
 ﻿namespace CsArena.Tests.LeetCode;
 
-using static Arrays;
+using static CsArena.Core.LeetCode.Arrays;
 
 public class ArraysTests
 {

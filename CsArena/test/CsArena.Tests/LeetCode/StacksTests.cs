@@ -1,6 +1,8 @@
 ﻿namespace CsArena.Tests.LeetCode;
 
-using static Stacks;
+using CsArena.Core.LeetCode;
+
+using static CsArena.Core.LeetCode.Stacks;
 
 public class StacksTests
 {

@@ -1,6 +1,6 @@
 ﻿namespace CsArena.Tests.LeetCode;
 
-using static BinarySearch;
+using static CsArena.Core.LeetCode.BinarySearch;
 
 public class BinarySearchTests
 {

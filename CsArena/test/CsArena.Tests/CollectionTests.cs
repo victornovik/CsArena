@@ -39,7 +39,7 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Text;
-using CsArena.Tests.models;
+using CsArena.Core.Models;
 
 namespace CsArena.Tests;
 

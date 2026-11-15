@@ -1,4 +1,4 @@
-﻿namespace CsArena.Tests.LeetCode;
+﻿namespace CsArena.Core.LeetCode;
 
 public class TreeNode
 {

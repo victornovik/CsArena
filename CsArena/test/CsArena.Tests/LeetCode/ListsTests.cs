@@ -1,6 +1,8 @@
 ﻿namespace CsArena.Tests.LeetCode;
 
-using static Lists;
+using CsArena.Core.LeetCode;
+
+using static CsArena.Core.LeetCode.Lists;
 
 public class ListsTests
 {

@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace CsArena.Tests.collections;
+namespace CsArena.Core.Collections;
 
 public class SkipListCollection<T> : ICollection<T>
 {

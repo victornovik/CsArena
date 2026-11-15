@@ -42,6 +42,24 @@ dotnet nuget why . SQLitePCLRaw.lib.e_sqlite3
 
 ---
 
+## Code coverage
+
+Coverage is collected with `Microsoft.Testing.Extensions.CodeCoverage` (Cobertura output) over the code in `CsArena.Core`:
+
+```bash
+dotnet test --solution CsArena.slnx --coverage --coverage-output-format cobertura
+# report: TestResults/<guid>.cobertura.xml
+
+# Markdown summary per file, and a failing exit code below the minimum line coverage
+python .github/scripts/coverage_summary.py TestResults --min-line 80
+```
+
+Current level: about 84% of lines and 85% of branches. The skip-list collections (`SkipListCollection`, `SkipListDictionary`) are at 0%, because no test uses them yet. CI (`MIN_LINE_COVERAGE` in `.github/workflows/ci.yml`) fails when line coverage drops below 80%, writes the summary to the run page and uploads the Cobertura file as an artifact.
+
+Why not `coverlet`: `coverlet.collector` is a VSTest data collector, which does nothing on Microsoft.Testing.Platform; `coverlet.MTP` ran but reported 0 lines here (before the code was moved; not retried afterwards). Neither tool reported anything for code inside the test assembly itself (the diagnostic log shows it skipped as an excluded path); once the code under test moved into its own project, both the Microsoft extension and the CI threshold worked, so that is the supported layout here.
+
+---
+
 ## Platforms and CI
 
 The suite is expected to pass on **Windows and Linux**. Last verified: Windows 10, and Ubuntu on WSL 2 with SDK 11.0.100 (386 passed, 3 skipped, repeated runs stable).
@@ -50,7 +68,7 @@ The suite is expected to pass on **Windows and Linux**. Last verified: Windows 1
 
 | Job | Runner | Steps |
 |---|---|---|
-| Build and test | `windows-latest` and `ubuntu-latest` (matrix, `fail-fast: false`) | `dotnet restore`, `dotnet build -c Release`, `dotnet test --solution CsArena.slnx -c Release --no-build` |
+| Build and test | `windows-latest` and `ubuntu-latest` (matrix, `fail-fast: false`) | `dotnet restore`, `dotnet build -c Release`, `dotnet test --solution CsArena.slnx -c Release --no-build --coverage --coverage-output-format cobertura`, coverage summary and threshold, artifact upload |
 | Vulnerable packages | `ubuntu-latest` | `dotnet list CsArena.slnx package --vulnerable --include-transitive`; the job fails if the output says `has the following vulnerable packages` (the command itself exits 0 on findings) |
 
 Warnings are errors (root `Directory.Build.props`), so a new compiler or analyzer warning fails the build step. The workflow has not yet run on GitHub; the same commands were run locally.
@@ -78,7 +96,8 @@ Platform notes for new tests:
 | Parallel execution | Native `[assembly: Parallelization(...)]` in `AssemblyInfo.cs` (replaces `Meziantou.Xunit.v3.ParallelTestFramework`, which does not support xunit 4) |
 | VS / Rider runner | `xunit.runner.visualstudio` 4.0.1 |
 | Test SDK | `Microsoft.NET.Test.Sdk` 18.6.0 |
-| Coverage | `coverlet.collector` 10.0.1 |
+| Coverage | `Microsoft.Testing.Extensions.CodeCoverage` 18.12.0 (see Code coverage below) |
+| Code under test | `src/CsArena.Core` class library, referenced by the test project |
 | Configuration | `Microsoft.Extensions.Configuration.*` 11.0.0 |
 | Target framework | `net11.0` |
 | Language | C# 15 (`LangVersion=latest`) |
@@ -88,53 +107,49 @@ Platform notes for new tests:
 
 ## Project layout
 
+The code under test lives in its own class library, `CsArena.Core`, so the coverage tools instrument it (they skip the test assembly itself). `CsArena.Tests` references it and holds only tests and test infrastructure.
+
 ```
-test/CsArena.Tests/
-│
-├── AssemblyInfo.cs            # Assembly-wide [Parallelization] setting
-├── *Tests.cs                  # Feature tests (one file per topic; CSharp14Tests, CSharp15Tests for language features)
-├── CollectionUtil.cs          # Static test-data factory (countries, dicts)
-├── HashHelpers.cs             # Hash / equality helpers shared across tests
-│
-├── config/
-│   ├── appsettings.json       # Copied to output; base config values
-│   ├── appsettings.local.json # Copied to output; local overrides
-│   ├── Options.cs             # Strongly-typed config binding target
-│   └── TestConfigHelper.cs    # IConfigurationRoot builder; PrintConfig helpers
-│
-├── collections/
+src/CsArena.Core/                   # Class library (namespace CsArena.Core.*)
+├── LeetCode/                       # Namespace CsArena.Core.LeetCode
+│   ├── Arrays.cs, BinarySearch.cs, Backtracking.cs, Bits.cs, Combinatorics.cs, Heap.cs,
+│   │   Intervals.cs, Lists.cs, Maths.cs, Sort.cs, Stacks.cs, Strings.cs, Trees.cs, Trie.cs
+│   ├── ListNode.cs                 # Linked-list node (used by Lists)
+│   ├── StackWithMin.cs             # Helper (used by Stacks)
+│   └── TreeNode.cs                 # Binary-tree node (used by Trees)
+├── Collections/                    # Namespace CsArena.Core.Collections
 │   ├── SkipListCollection.cs
 │   ├── SkipListDictionary.cs
-│   ├── SkipListSetNode.cs
-│   └── ThrowHelper.cs
-│
-├── extensions/
+│   ├── SkipListSetNode.cs          # internal
+│   └── ThrowHelper.cs              # internal
+├── Extensions/                     # Namespace CsArena.Core.Extensions
 │   ├── IntExtensions.cs
-│   ├── LinqExtensions.cs      # MyCount, Filter, SelectWithIndex, Random()
-│   └── StringExtensions.cs   # Concat, ReplaceAt, ParseEnum<T>
+│   ├── LinqExtensions.cs           # MyCount, Filter, SelectWithIndex, Random(seed)
+│   └── StringExtensions.cs         # Concat, ReplaceAt, ParseEnum<T>
+└── Models/                         # Namespace CsArena.Core.Models
+    ├── Book.cs
+    ├── Car.cs                      # Two Deconstruct overloads
+    ├── Country.cs
+    └── Player.cs                   # Indexer via PlayerList wrapper
+
+test/CsArena.Tests/                 # Tests (namespace CsArena.Tests, CsArena.Tests.LeetCode)
 │
-├── models/
-│   ├── Book.cs
-│   ├── Car.cs                 # Two Deconstruct overloads
-│   ├── Country.cs
-│   └── Player.cs              # Indexer via PlayerList wrapper
+├── AssemblyInfo.cs                 # Assembly-wide [Parallelization] setting
+├── *Tests.cs                       # Feature tests (one file per topic; CSharp14Tests, CSharp15Tests for language features)
+├── CollectionUtil.cs               # Static test-data factory (countries, dicts)
+├── HashHelpers.cs                  # Hash / equality helpers used by CollectionTests
+│
+├── config/
+│   ├── appsettings.json            # Copied to output; base config values
+│   ├── appsettings.local.json      # Copied to output; local overrides
+│   ├── Options.cs                  # Strongly-typed config binding target
+│   └── TestConfigHelper.cs         # IConfigurationRoot builder; PrintConfig helpers
 │
 └── LeetCode/
-    ├── Arrays.cs + ArraysTests.cs
-    ├── BinarySearch.cs + BinarySearchTests.cs
-    ├── Backtracking.cs + BacktrackingTests.cs
-    ├── Bits.cs + BitsTests.cs
-    ├── Combinatorics.cs + CombinatoricsTests.cs
-    ├── Heap.cs + HeapTests.cs
-    ├── Intervals.cs + IntervalsTests.cs
-    ├── Lists.cs + ListsTests.cs   (ListNode.cs — linked-list node)
-    ├── Maths.cs + MathsTests.cs
-    ├── Sort.cs + SortTests.cs
-    ├── Stacks.cs + StacksTests.cs (StackWithMin.cs — helper)
-    ├── Strings.cs + StringsTests.cs
-    ├── Trees.cs + TreesTests.cs   (TreeNode.cs — binary-tree node)
-    └── Trie.cs + TriesTests.cs
+    └── *Tests.cs                   # ArraysTests, BinarySearchTests, ... one per solution class
 ```
+
+`CsArena.Core` exposes its internals to `CsArena.Tests` (`InternalsVisibleTo`).
 
 ---
 
@@ -185,7 +200,7 @@ test/CsArena.Tests/
 
 ## Namespace and using conventions
 
-All test classes live in `CsArena.Tests` (root topics) or `CsArena.Tests.LeetCode` (algorithms). `Xunit` is a **global implicit using** via:
+All test classes live in `CsArena.Tests` (root topics) or `CsArena.Tests.LeetCode` (algorithm tests). The code they exercise lives in `CsArena.Core.*` (`.LeetCode`, `.Collections`, `.Extensions`, `.Models`). `Xunit` is a **global implicit using** via:
 
 ```xml
 <Using Include="Xunit" />   <!-- CsArena.Tests.csproj -->
@@ -197,8 +212,8 @@ Add explicit `using` only for non-Xunit namespaces your file needs:
 
 ```csharp
 using System.Collections.Concurrent;
-using CsArena.Tests.extensions;
-using CsArena.Tests.models;
+using CsArena.Core.Extensions;
+using CsArena.Core.Models;
 ```
 
 ---
@@ -341,7 +356,7 @@ var opts = TestConfigHelper.GetOptions(); // returns Options or new Options()
 
 User-secrets ID: `acab85f1-6255-410f-a9ef-b94f35eff04b` (matches `csproj`).
 
-### Models (models/)
+### Models (`CsArena.Core/Models`)
 
 `Country`, `Player` / `PlayerList`, `Book`, `Car` / `CarStatistics` — plain data objects used as realistic LINQ / reflection / generics subjects. Prefer them over ad-hoc anonymous types when you need a named, reusable shape.
 
@@ -349,10 +364,10 @@ User-secrets ID: `acab85f1-6255-410f-a9ef-b94f35eff04b` (matches `csproj`).
 
 ## LeetCode sub-project conventions
 
-Each topic has two co-located files:
+Each topic has two files, in two projects:
 
-- **`Topic.cs`** — static class, static methods, block-comment docstring with problem statement, approach, and complexity.
-- **`TopicTests.cs`** — one `[Fact]` or `[Theory]` per problem, named `<ProblemName>Test`.
+- **`CsArena.Core/LeetCode/Topic.cs`** — static class, static methods, block-comment docstring with problem statement, approach, and complexity.
+- **`CsArena.Tests/LeetCode/TopicTests.cs`** — one `[Fact]` or `[Theory]` per problem, named `<ProblemName>Test`. `using static` needs the fully qualified type name (`using static CsArena.Core.LeetCode.Sort;`), because it ignores sibling `using` directives; add `using CsArena.Core.LeetCode;` as well when the test uses types such as `ListNode` or `TreeNode`.
 
 ```csharp
 // Sort.cs
@@ -396,7 +411,7 @@ public class NewTopicTests(ITestOutputHelper output)
 
 ### Case 2: New LeetCode problem
 
-Add implementation to `LeetCode/Topic.cs`, test to `LeetCode/TopicTests.cs`. Use `[Theory]` + `[InlineData]` for parameterized cases.
+Add the implementation to `CsArena.Core/LeetCode/Topic.cs` and the test to `CsArena.Tests/LeetCode/TopicTests.cs`. Use `[Theory]` + `[InlineData]` for parameterized cases.
 
 ```csharp
 [Theory]

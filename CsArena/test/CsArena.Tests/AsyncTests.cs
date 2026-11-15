@@ -1,4 +1,4 @@
-﻿using CsArena.Tests.extensions;
+﻿using CsArena.Core.Extensions;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 

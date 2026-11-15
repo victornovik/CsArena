@@ -1,6 +1,6 @@
 ﻿namespace CsArena.Tests.LeetCode;
 
-using static Backtracking;
+using static CsArena.Core.LeetCode.Backtracking;
 
 public class BacktrackingTests
 {

@@ -1,6 +1,6 @@
 ﻿namespace CsArena.Tests.LeetCode;
 
-using static Maths;
+using static CsArena.Core.LeetCode.Maths;
 
 public class MathsTests
 {

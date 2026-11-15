@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace CsArena.Tests.collections;
+namespace CsArena.Core.Collections;
 
 public class SkipListDictionary<TKey, TValue>:IDictionary<TKey, TValue>
 {

@@ -1,4 +1,4 @@
-﻿namespace CsArena.Tests.models;
+﻿namespace CsArena.Core.Models;
 
 public class Book(string name)
 {

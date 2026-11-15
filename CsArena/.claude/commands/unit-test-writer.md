@@ -5,7 +5,7 @@
 Given `$ARGUMENTS` — a topic, feature, algorithm, or scenario — write:
 
 1. **The test method(s)** inside the correct existing class, or a new class if none fits.
-2. **The implementation** if it's a LeetCode-style algorithm (in `LeetCode/Topic.cs`, test in `LeetCode/TopicTests.cs`).
+2. **The implementation** if it's a LeetCode-style algorithm (in `CsArena.Core/LeetCode/Topic.cs`, test in `CsArena.Tests/LeetCode/TopicTests.cs`).
 3. Where multiple cases exist, use `[Theory]` + `[InlineData]` — one case per `[InlineData]`.
 4. Use `Assert.Equal(expected, actual)` — prefer typed assertions over `Assert.True(condition)`.
 
@@ -20,7 +20,8 @@ Given `$ARGUMENTS` — a topic, feature, algorithm, or scenario — write:
 | Run | `dotnet test --project CsArena/test/CsArena.Tests [--filter-class X] [--filter-method Y]` |
 | Runtime | `net11.0`, C# 15, nullable enabled |
 | Global using | `using Xunit;` is implicit — **never add it explicitly** |
-| Test namespaces | `CsArena.Tests` (root) · `CsArena.Tests.LeetCode` (algorithms) |
+| Test namespaces | `CsArena.Tests` (root) · `CsArena.Tests.LeetCode` (algorithm tests) |
+| Code under test | Class library `CsArena/src/CsArena.Core` — namespaces `CsArena.Core.LeetCode`, `.Collections`, `.Extensions`, `.Models` |
 
 ---
 
@@ -168,14 +169,14 @@ public void DescriptiveName(int threadCount)
 | `CollectionUtil.CreateCountryList()` | `CollectionUtil.cs` | 3-country `List<Country>` seed data |
 | `CollectionUtil.CreateCountryDictionary()` | `CollectionUtil.cs` | `Dictionary<string, Country>` (OrdinalIgnoreCase on Code) |
 | `TestConfigHelper.GetConfigurationRoot(...)` | `config/TestConfigHelper.cs` | Builds `IConfigurationRoot` with optional secrets/env/cmdline |
-| `LinqExtensions.Random()` | `extensions/LinqExtensions.cs` | Infinite `IEnumerable<int>` random stream |
-| `StringExtensions.ParseEnum<T>` | `extensions/StringExtensions.cs` | Generic enum parse from string |
+| `LinqExtensions.Random()` | `CsArena.Core/Extensions/LinqExtensions.cs` | Infinite `IEnumerable<int>` random stream |
+| `StringExtensions.ParseEnum<T>` | `CsArena.Core/Extensions/StringExtensions.cs` | Generic enum parse from string |
 
 ---
 
 ## LeetCode pattern
 
-Algorithm in `LeetCode/Topic.cs` — static class, static methods, block-comment with problem, approach, complexity:
+Algorithm in `CsArena.Core/LeetCode/Topic.cs` (namespace `CsArena.Core.LeetCode`) — static class, static methods, block-comment with problem, approach, complexity:
 
 ```csharp
 public static class Arrays
@@ -192,7 +193,7 @@ public static class Arrays
 }
 ```
 
-Test in `LeetCode/TopicTests.cs` — minimal, no setup, one assertion per case:
+Test in `CsArena.Tests/LeetCode/TopicTests.cs` — start it with `using static CsArena.Core.LeetCode.Topic;` (the fully qualified name is required), then minimal, no setup, one assertion per case:
 
 ```csharp
 public class ArraysTests
