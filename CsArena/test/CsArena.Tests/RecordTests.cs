@@ -74,7 +74,8 @@ public class RecordTests
     public void SerializeRecord()
     {
         var c1 = new Customer("Victor", "Novik");
-        var json = JsonSerializer.Serialize(c1, options: new() { WriteIndented = true });
+        // NewLine (.NET 9+) pins the line break, so the expected raw string doesn't depend on the OS or the file's line endings
+        var json = JsonSerializer.Serialize(c1, options: new() { WriteIndented = true, NewLine = "\n" });
 
         Assert.Equal("""
                      {

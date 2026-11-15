@@ -370,7 +370,7 @@ public class TypeTests
     [Fact]
     public void MutateImmutableString()
     {
-        const string s = "I’m immutable";
+        const string s = "Iâ€™m immutable";
         unsafe
         {
             fixed (char* p = s)
@@ -380,7 +380,7 @@ public class TypeTests
             }
         }
 
-        Assert.Equal("I’m   mutable", s);
+        Assert.Equal("Iâ€™m   mutable", s);
     }
 
     [Fact]
