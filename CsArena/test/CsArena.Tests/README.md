@@ -42,6 +42,34 @@ dotnet nuget why . SQLitePCLRaw.lib.e_sqlite3
 
 ---
 
+## Platforms and CI
+
+The suite is expected to pass on **Windows and Linux**. Last verified: Windows 10, and Ubuntu on WSL 2 with SDK 11.0.100 (386 passed, 3 skipped, repeated runs stable).
+
+`.github/workflows/ci.yml` runs on pushes and pull requests to `main`, daily at 12:10 MSK (09:10 UTC; GitHub cron is UTC and Moscow has no DST), and on demand (`workflow_dispatch`):
+
+| Job | Runner | Steps |
+|---|---|---|
+| Build and test | `windows-latest` and `ubuntu-latest` (matrix, `fail-fast: false`) | `dotnet restore`, `dotnet build -c Release`, `dotnet test --solution CsArena.slnx -c Release --no-build` |
+| Vulnerable packages | `ubuntu-latest` | `dotnet list CsArena.slnx package --vulnerable --include-transitive`; the job fails if the output says `has the following vulnerable packages` (the command itself exits 0 on findings) |
+
+Warnings are errors (root `Directory.Build.props`), so a new compiler or analyzer warning fails the build step. The workflow has not yet run on GitHub; the same commands were run locally.
+
+To reproduce the Linux run on Windows, use WSL with the .NET 11 SDK. Build from a copy on the Linux filesystem rather than `/mnt/d/...`, so Linux `bin/` and `obj/` do not end up in the Windows working tree (`obj/project.assets.json` holds absolute paths):
+
+```bash
+export XDG_RUNTIME_DIR="$HOME/xdg-runtime" && mkdir -p -m 700 "$XDG_RUNTIME_DIR"   # WSL only, see below
+dotnet test --solution CsArena.slnx -c Release
+```
+
+WSL points `XDG_RUNTIME_DIR` at `/mnt/wslg/runtime-dir`, whose owner .NET rejects. Named mutexes (used by `AsyncTests.InterProcessMutex`) and the SDK's first-run setup then fail with `The directory '/mnt/wslg/runtime-dir' does not have the expected owner or permissions`. A private directory fixes it; plain Linux hosts and GitHub runners are not affected.
+
+Platform notes for new tests:
+- Don't depend on the OS line break or on the source file's line endings. Source files are LF everywhere (`.gitattributes`, `.editorconfig`); pin output instead, e.g. `JsonSerializerOptions.NewLine = "\n"` in `RecordTests.SerializeRecord`.
+- Use forward-compatible paths (`Path.Combine`), and remember Linux file systems are case-sensitive.
+
+---
+
 ## Stack
 
 | Concern | Package / Version |
@@ -429,6 +457,8 @@ dotnet user-secrets set "MySection:MyKey" "value" --id acab85f1-6255-410f-a9ef-b
 | `Meziantou.Xunit.v3.ParallelTestFramework` with xunit 4 | Runner crashes with "Sequence contains no elements" and runs no tests | Remove it; use `[assembly: Parallelization(Mode = ParallelMode.All)]` |
 | `dotnet test <path>` / `--filter` on the .NET 10+ SDK | "Testing with VSTest target is no longer supported" error | Use `dotnet test --project <path>` and `--filter-class` / `--filter-method` / `--filter-trait` |
 | `[CollectionBehavior(MaxParallelThreads = ...)]` | CS0619 (obsolete) in xUnit 4 | `[assembly: Parallelization(MaxThreads = ...)]` |
+| Test asserts on text containing a line break (JSON, `Environment.NewLine`, raw string literals) | Passes on Windows, fails on Linux or after a line-ending change | Pin the line break (`JsonSerializerOptions.NewLine`) or compare normalized text |
+| Named mutex / `dotnet` first run fails in WSL with "does not have the expected owner or permissions" | Tests never start | Set `XDG_RUNTIME_DIR` to a private directory you own (see Platforms and CI) |
 | `Task.Delay(n).Wait()` in a sync event handler | Thread-pool pressure delays handler past a racing async continuation (was in `WaitOnAsyncVoid` — fixed) | `Thread.Sleep(n)` or remove |
 | `Thread.Sleep(n)` to guarantee task completion before `await` | Timer-resolution race under load (was in `ContinueAfterAwaitInTheSameThread` — fixed) | `while (!task.IsCompleted) Thread.Yield()` |
 | Fixed `await Task.Delay(n)` to wait for background tasks | Race when system is slow (was `await Task.Delay(500)` in `AttachedToParentTasks` — fixed) | `await Task.WhenAll(task1!, task2!)` |

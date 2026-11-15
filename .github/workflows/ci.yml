@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Daily at 12:10 Moscow time (MSK = UTC+3, no DST). GitHub cron is always UTC, so 09:10 UTC.
+    # Also catches newly published advisories and runner/SDK changes when nothing is pushed.
+    - cron: "10 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  build-test:
+    name: Build and test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      # Let both OSes finish so a failure on one doesn't hide the result on the other.
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.x
+
+      - name: Restore
+        run: dotnet restore CsArena.slnx
+
+      # Warnings are errors (root Directory.Build.props), so this also gates on analyzer warnings.
+      - name: Build
+        run: dotnet build CsArena.slnx --configuration Release --no-restore
+
+      # global.json selects Microsoft.Testing.Platform, hence --solution instead of a positional path.
+      - name: Test
+        run: dotnet test --solution CsArena.slnx --configuration Release --no-build
+
+  vulnerability-scan:
+    name: Vulnerable packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.x
+
+      - name: Restore
+        run: dotnet restore CsArena.slnx
+
+      # `dotnet list package --vulnerable` exits 0 even when it finds something, so fail on its output.
+      - name: Scan direct and transitive packages
+        shell: bash
+        run: |
+          dotnet list CsArena.slnx package --vulnerable --include-transitive 2>&1 | tee vulnerabilities.txt
+          if grep -qi "has the following vulnerable packages" vulnerabilities.txt; then
+            echo "::error::Vulnerable NuGet packages found (see the scan output above)."
+            exit 1
+          fi
