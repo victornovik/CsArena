@@ -36,9 +36,18 @@ public class SkipListDictionary<TKey, TValue>:IDictionary<TKey, TValue>
         _set.Clear();
     }
 
+    // Matches Dictionary<TKey, TValue>: the pair is present only if the key exists AND its value equals the stored value
+    // (default equality); a null key throws ArgumentNullException.
     public bool Contains(KeyValuePair<TKey, TValue> item)
     {
-        return _set.Contains(item);
+        if (item.Key == null)
+        {
+            throw new ArgumentNullException("key");
+        }
+
+        // The set compares keys only, so this finds the entry for the key whatever value the probe carries.
+        var node = _set.FindNode(item);
+        return node != null && EqualityComparer<TValue>.Default.Equals(node.Key.Value, item.Value);
     }
 
     public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
@@ -46,9 +55,10 @@ public class SkipListDictionary<TKey, TValue>:IDictionary<TKey, TValue>
         _set.CopyTo(array, arrayIndex);
     }
 
+    // Matches Dictionary<TKey, TValue>: removes the entry only when both key and value match.
     public bool Remove(KeyValuePair<TKey, TValue> item)
     {
-        return _set.Remove(item);
+        return Contains(item) && _set.Remove(item);
     }
 
     public int Count => _set.Count;

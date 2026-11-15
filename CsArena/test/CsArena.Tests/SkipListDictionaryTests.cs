@@ -3,8 +3,8 @@
 namespace CsArena.Tests;
 
 // SkipListDictionary<TKey, TValue> keeps its pairs sorted by key (a SkipListCollection of pairs compared by key only).
-// Add and the indexer follow Dictionary<TKey, TValue>; the tests below the "not like Dictionary" marker describe
-// the members that still differ (key-only pair matching, unimplemented members, unpopulated Keys/Values).
+// Add, the indexer and the key-value-pair Contains/Remove follow Dictionary<TKey, TValue>; the tests below the
+// "not like Dictionary" marker describe the members that still differ (unimplemented members, unpopulated Keys/Values).
 public class SkipListDictionaryTests
 {
     private static SkipListDictionary<string, int> Create(params (string Key, int Value)[] pairs)
@@ -187,21 +187,74 @@ public class SkipListDictionaryTests
         Assert.Equal(7, ((IDictionary<string, int>)dictionary)["k"]);
     }
 
-    // ---- Not like Dictionary<TKey, TValue> ----
-
-    // Pairs are matched by key only, so the value of the probe pair is irrelevant.
+    // Like Dictionary<TKey, TValue>: a pair is "contained" only when the key exists AND the value equals the stored one.
     [Fact]
-    public void KeyValuePairContainsAndRemoveMatchByKeyOnlyTest()
+    public void KeyValuePairContainsMatchesKeyAndValueTest()
     {
         ICollection<KeyValuePair<string, int>> dictionary = Create(("a", 1), ("b", 2));
 
         Assert.True(HasPair(dictionary, new KeyValuePair<string, int>("a", 1)));
-        Assert.True(HasPair(dictionary, new KeyValuePair<string, int>("a", 12345)));
-        Assert.False(HasPair(dictionary, new KeyValuePair<string, int>("z", 1)));
+        Assert.True(HasPair(dictionary, new KeyValuePair<string, int>("b", 2)));
+        Assert.False(HasPair(dictionary, new KeyValuePair<string, int>("a", 2)));      // key found, other value
+        Assert.False(HasPair(dictionary, new KeyValuePair<string, int>("a", 12345)));
+        Assert.False(HasPair(dictionary, new KeyValuePair<string, int>("z", 1)));      // key missing
+    }
 
-        Assert.True(dictionary.Remove(new KeyValuePair<string, int>("a", 12345)));
+    [Fact]
+    public void KeyValuePairRemoveMatchesKeyAndValueTest()
+    {
+        ICollection<KeyValuePair<string, int>> dictionary = Create(("a", 1), ("b", 2), ("c", 3));
+
+        // Wrong value: nothing is removed
+        Assert.False(dictionary.Remove(new KeyValuePair<string, int>("a", 12345)));
+        Assert.Equal(3, dictionary.Count);
+
+        // Missing key: nothing is removed
+        Assert.False(dictionary.Remove(new KeyValuePair<string, int>("z", 1)));
+
+        // Matching key and value: removed
+        Assert.True(dictionary.Remove(new KeyValuePair<string, int>("b", 2)));
+        Assert.Equal(["a", "c"], ((IDictionary<string, int>)dictionary).Select(pair => pair.Key));
+        Assert.False(dictionary.Remove(new KeyValuePair<string, int>("b", 2)));
+    }
+
+    // Values are compared with EqualityComparer<TValue>.Default, so reference types compare by their Equals.
+    [Fact]
+    public void KeyValuePairValueIsComparedWithDefaultEqualityTest()
+    {
+        var dictionary = new SkipListDictionary<int, string>();
+        dictionary.Add(1, new string("one".ToCharArray()));   // a distinct string instance
+        ICollection<KeyValuePair<int, string>> pairs = dictionary;
+
+        Assert.True(pairs.Contains(new KeyValuePair<int, string>(1, "one")));
+        Assert.False(pairs.Contains(new KeyValuePair<int, string>(1, "ONE")));
+        Assert.True(pairs.Remove(new KeyValuePair<int, string>(1, "one")));
+        Assert.Empty(dictionary);
+    }
+
+    [Fact]
+    public void KeyValuePairContainsAndRemoveWithNullKeyThrowTest()
+    {
+        ICollection<KeyValuePair<string, int>> dictionary = Create(("a", 1));
+        var nullKeyPair = new KeyValuePair<string, int>(null!, 1);
+
+        Assert.Equal("key", Assert.Throws<ArgumentNullException>(() => dictionary.Contains(nullKeyPair)).ParamName);
+        Assert.Equal("key", Assert.Throws<ArgumentNullException>(() => dictionary.Remove(nullKeyPair)).ParamName);
         Assert.Single(dictionary);
-        Assert.False(dictionary.Remove(new KeyValuePair<string, int>("a", 1)));
+    }
+
+    [Fact]
+    public void KeyValuePairMembersUseTheComparerForKeysTest()
+    {
+        ICollection<KeyValuePair<string, int>> dictionary = new SkipListDictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "Key", 1 },
+        };
+
+        Assert.True(dictionary.Contains(new KeyValuePair<string, int>("KEY", 1)));
+        Assert.False(dictionary.Contains(new KeyValuePair<string, int>("KEY", 2)));
+        Assert.True(dictionary.Remove(new KeyValuePair<string, int>("kEy", 1)));
+        Assert.Empty(dictionary);
     }
 
     [Fact]
@@ -253,6 +306,8 @@ public class SkipListDictionaryTests
             [new KeyValuePair<string, int>("a", 1), new KeyValuePair<string, int>("b", 2)],
             dictionary.Cast<KeyValuePair<string, int>>());
     }
+
+    // ---- Not like Dictionary<TKey, TValue> ----
 
     [Fact]
     public void NotImplementedMembersTest()
