@@ -207,7 +207,7 @@ public class AsyncTests
     [Fact]
     public async Task ValueTask()
     {
-        var rnd = new Random();
+        var rnd = new Random(42);
         int roll1 = await RollAsync();
         int roll2 = await RollAsync();
         int twoDices = roll1 + roll2;
@@ -470,7 +470,7 @@ public class AsyncTests
 
         static decimal Compute(int value)
         {
-            Thread.Sleep(Random.Shared.Next(1, 5));
+            Thread.Sleep(1 + value % 4); // deterministic 1-4 ms jitter to vary thread interleaving
             return value + 0.5m;
         }
     }

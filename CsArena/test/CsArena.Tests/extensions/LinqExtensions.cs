@@ -31,9 +31,10 @@ public static class LinqExtensions
         }
     }
 
-    public static IEnumerable<int> Random()
+    // Seeded so the sequence is reproducible between runs.
+    public static IEnumerable<int> Random(int seed = 42)
     {
-        var rnd = new Random();
+        var rnd = new Random(seed);
         while (true)
             yield return rnd.Next();
         // ReSharper disable once IteratorNeverReturns

@@ -21,11 +21,11 @@ public class SkipListCollection<T> : ICollection<T>
     private int _level;
     private int _count;
 
-    public SkipListCollection(Comparer<T> comparer)
+    public SkipListCollection(Comparer<T> comparer, int seed = 42)
     {
         Debug.Assert(comparer != null);
         _comparer = comparer;
-        _random = new Random();
+        _random = new Random(seed);
         _head = new SkipListSetNode<T>(default(T), MaxLevel);
         _nil = _head;
         _version = 0;
