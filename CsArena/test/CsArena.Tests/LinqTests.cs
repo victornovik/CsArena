@@ -2,6 +2,7 @@
 
 namespace CsArena.Tests;
 
+[Category(TestCategories.Linq)]
 public class LinqTests
 {
     /* Immediate query operators: Count, Max, Average, First, ToArray(), ToList(), ...

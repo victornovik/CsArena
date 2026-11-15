@@ -25,6 +25,18 @@ public static class TestCategories
 
     /// <summary>Algorithm tests for the solutions in CsArena.Core.LeetCode.</summary>
     public const string LeetCode = "leetcode";
+
+    /// <summary>C# language features: types, generics, delegates, pattern matching, records, tuples, nullability, ...</summary>
+    public const string Language = "language";
+
+    /// <summary>Collection types: the BCL collections and the skip-list collections in CsArena.Core.</summary>
+    public const string Collections = "collections";
+
+    /// <summary>LINQ operators, query syntax and custom operators.</summary>
+    public const string Linq = "linq";
+
+    /// <summary>Base class library APIs outside the groups above: configuration, math, memory and spans, reflection.</summary>
+    public const string Bcl = "bcl";
 }
 
 /// <summary>Tags a test class or method with a <c>category</c> trait, e.g. <c>[Category(TestCategories.Gc)]</c>.</summary>

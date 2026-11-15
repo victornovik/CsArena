@@ -5,6 +5,7 @@ using CsArena.Core.Models;
 
 namespace CsArena.Tests;
 
+[Category(TestCategories.Language)]
 public class TupleTests
 {
     [Fact]

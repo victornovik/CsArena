@@ -2,6 +2,7 @@
 
 namespace CsArena.Tests;
 
+[Category(TestCategories.Bcl)]
 public class MemoryTests
 {
     // Span<T> is value type.

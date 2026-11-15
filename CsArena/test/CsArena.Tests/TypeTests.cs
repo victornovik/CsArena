@@ -6,6 +6,7 @@ using Microsoft.CSharp.RuntimeBinder;
 
 namespace CsArena.Tests;
 
+[Category(TestCategories.Language)]
 public class TypeTests
 {
     [Fact]

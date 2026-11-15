@@ -5,6 +5,7 @@ namespace CsArena.Tests;
 
 // SkipListCollection<T> is a sorted set built on a skip list: no duplicates, ordered by the comparer.
 // The random tower heights come from a seeded Random, so every run builds the same structure.
+[Category(TestCategories.Collections)]
 public class SkipListCollectionTests
 {
     private static SkipListCollection<int> CreateInts(params int[] items)

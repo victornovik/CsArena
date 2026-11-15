@@ -2,6 +2,7 @@
 
 namespace CsArena.Tests;
 
+[Category(TestCategories.Bcl)]
 public class MathTests
 {
     [Fact]

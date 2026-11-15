@@ -163,9 +163,10 @@ Pick the mechanism by the reason, not by habit:
 | Asserts on garbage-collector state | Put it in `GcTests` (the non-parallel `gc` collection, `[Category(TestCategories.Gc)]`). |
 | Threads, locks, OS primitives | `[Category(TestCategories.Concurrency)]` and `Timeout = TestTimeouts.Default`. |
 | LeetCode solution test | `[Category(TestCategories.LeetCode)]` on the test class. |
+| Anything else | The topic category on the test class: `Language` (C# language features), `Collections`, `Linq`, or `Bcl` (configuration, math, memory, reflection and other library APIs). Every test must have at least one category; `TestCategoriesTests` fails otherwise. |
 | Genuinely non-deterministic (scheduler-dependent) after every fix below has been tried | `[Fact(Skip = "reason")]` — the last resort. |
 
-Categories are `Network`, `Gc`, `Concurrency`, `Slow` and `LeetCode` in `TestCategories`; apply them with `[Category(TestCategories.X)]` on a class or a method (a test can have several). They become `category` traits, selected with `--filter-trait "category=x"` and excluded with `--filter-not-trait "category=x"`. Visual Studio's Traits column cells stay blank for them; use its header filter, Group By Traits or the `Trait:x` search instead (see the README).
+Categories are `Network`, `Gc`, `Concurrency`, `Slow`, `LeetCode`, `Language`, `Collections`, `Linq` and `Bcl` in `TestCategories` (a new category needs a constant there and an entry in `TestCategoriesTests.KnownCategories`); apply them with `[Category(TestCategories.X)]` on a class or a method (a test can have several). They become `category` traits, selected with `--filter-trait "category=x"` and excluded with `--filter-not-trait "category=x"`. Visual Studio's Traits column cells stay blank for them; use its header filter, Group By Traits or the `Trait:x` search instead (see the README).
 
 Before using `Skip` for flakiness, try to eliminate the non-determinism:
   - Replace fixed `Thread.Sleep` delays with `while (!task.IsCompleted) Thread.Yield()`

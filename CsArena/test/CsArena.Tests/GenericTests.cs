@@ -28,6 +28,7 @@ file class MagicHat<T> where T : class, new()
     private readonly Queue<T> _queue = new();
 }
 
+[Category(TestCategories.Language)]
 public class GenericTests
 {
     internal class NoArg;

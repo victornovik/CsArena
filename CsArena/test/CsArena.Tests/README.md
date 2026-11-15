@@ -80,7 +80,7 @@ Why not `coverlet`: `coverlet.collector` is a VSTest data collector, which does 
 
 ## Platforms and CI
 
-The suite is expected to pass on **Windows and Linux**. Last verified: Windows 10, and Ubuntu on WSL 2 with SDK 11.0.100 (438 passed, 3 skipped, repeated runs stable). The 3 skipped tests are the opt-in `[NetworkFact]` tests (`category=network`): CI does not set `CSARENA_NETWORK_TESTS`, so they are skipped on both operating systems.
+The suite is expected to pass on **Windows and Linux**. Last verified: Windows 10, and Ubuntu on WSL 2 with SDK 11.0.100 (440 passed, 3 skipped, repeated runs stable). The 3 skipped tests are the opt-in `[NetworkFact]` tests (`category=network`): CI does not set `CSARENA_NETWORK_TESTS`, so they are skipped on both operating systems.
 
 `.github/workflows/ci.yml` runs on pushes and pull requests to `main`, daily at 12:10 MSK (09:10 UTC; GitHub cron is UTC and Moscow has no DST), and on demand (`workflow_dispatch`):
 
@@ -301,8 +301,12 @@ Only for genuinely non-deterministic scheduler-dependent behaviour, after all de
 | `concurrency` | `AsyncTests` (all carry a per-test timeout) | 31 |
 | `slow` | tests of about 300 ms or more: `StopWatchTest`, `AsyncPuzzler`, `AttachedToParentTasks`, `ThreadLocal`, `ConcurrentBag` | 6 |
 | `leetcode` | every `LeetCode/*Tests` class | 144 |
+| `language` | C# language features: `AnonymousTypeTests`, `AttributeTests`, `CSharp14Tests`, `CSharp15Tests`, `DelegateTests`, `ExceptionTests`, `GenericTests`, `IteratorBlockTests`, `LanguageTests`, `NullTests`, `PatternMatchingTests`, `RecordTests`, `TupleTests`, `TypeTests` | 125 |
+| `collections` | `CollectionTests`, `SkipListCollectionTests`, `SkipListDictionaryTests` | 81 |
+| `linq` | `LinqTests` | 22 |
+| `bcl` | base class library APIs: `ConfigurationTests`, `MathTests`, `MemoryTests`, `ReflectionTests`, `TestCategoriesTests` | 34 |
 
-Counts include theory rows. A test can have several categories (`ThreadLocal` is both `concurrency` and `slow`). Durations come from `--show-slowest-tests` on a developer machine, so treat `slow` as a rough label: re-check it when a test's timing changes.
+Every test has at least one category, and `TestCategoriesTests` fails with the list of offenders when a new test or class has none (it also checks that only the categories in `TestCategories` are used). Counts include theory rows. A test can have several categories (`ThreadLocal` is both `concurrency` and `slow`), so the counts add up to more than the 443 tests. Durations come from `--show-slowest-tests` on a developer machine, so treat `slow` as a rough label: re-check it when a test's timing changes.
 
 ### Categories in Visual Studio Test Explorer
 

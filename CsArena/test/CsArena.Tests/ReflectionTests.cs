@@ -4,6 +4,7 @@ using CsArena.Core.Models;
 
 namespace CsArena.Tests;
 
+[Category(TestCategories.Bcl)]
 public class ReflectionTests
 {
     [Fact]

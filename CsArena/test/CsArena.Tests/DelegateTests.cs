@@ -5,6 +5,7 @@ namespace CsArena.Tests;
 
 public delegate string Process(string message);
 
+[Category(TestCategories.Language)]
 public class DelegateTests
 {
     delegate int Printer();

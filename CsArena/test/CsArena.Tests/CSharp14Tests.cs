@@ -33,6 +33,7 @@ file class Temperature
     }
 }
 
+[Category(TestCategories.Language)]
 public class CSharp14Tests
 {
     [Fact]

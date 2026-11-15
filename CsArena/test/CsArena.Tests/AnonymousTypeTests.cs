@@ -5,6 +5,7 @@ namespace CsArena.Tests;
 // Anonymous type is a reference type
 // Values are stored in properties with backing fields
 // Immutable
+[Category(TestCategories.Language)]
 public class AnonymousTypeTests
 {
    [Fact]

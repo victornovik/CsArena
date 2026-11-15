@@ -2,6 +2,7 @@
 
 namespace CsArena.Tests;
 
+[Category(TestCategories.Language)]
 public class IteratorBlockTests
 {
     [Fact]

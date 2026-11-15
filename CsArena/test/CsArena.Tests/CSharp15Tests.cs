@@ -33,6 +33,7 @@ file interface IMeasurement
     public static double ToMeters(double centimeters) => centimeters / 100;
 }
 
+[Category(TestCategories.Language)]
 public class CSharp15Tests
 {
     [Fact]

@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 namespace CsArena.Tests;
 
+[Category(TestCategories.Bcl)]
 public class ConfigurationTests(ITestOutputHelper output)
 {
     [Fact]

@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace CsArena.Tests;
 
+[Category(TestCategories.Language)]
 public class RecordTests
 {
     private record Customer(string FirstName, string LastName)

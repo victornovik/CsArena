@@ -5,6 +5,7 @@ namespace CsArena.Tests;
 // SkipListDictionary<TKey, TValue> keeps its pairs sorted by key (a SkipListCollection of pairs compared by key only).
 // Add, the indexer and the key-value-pair Contains/Remove follow Dictionary<TKey, TValue>; the tests below the
 // "not like Dictionary" marker describe the members that still differ (unimplemented members, unpopulated Keys/Values).
+[Category(TestCategories.Collections)]
 public class SkipListDictionaryTests
 {
     private static SkipListDictionary<string, int> Create(params (string Key, int Value)[] pairs)

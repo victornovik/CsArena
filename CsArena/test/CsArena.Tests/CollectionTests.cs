@@ -43,6 +43,7 @@ using CsArena.Core.Models;
 
 namespace CsArena.Tests;
 
+[Category(TestCategories.Collections)]
 public class CollectionTests
 {
     [Fact]
